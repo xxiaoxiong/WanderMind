@@ -64,15 +64,15 @@ Compose 会启动 pgvector/PostgreSQL、执行 Alembic 迁移、启动 API 与 N
 
 ## 线上部署
 
-[当前试用实例](https://wandermind-p6jg.onrender.com)（用户名 `wandermind`；密码在 Render Environment 的 `WANDERMIND_ACCESS_PASSWORD` 中）
+[当前试用实例](https://wandermind-p6jg.onrender.com)（公开访问，无需登录）
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/xxiaoxiong/WanderMind)
 
 仓库根目录的 `Dockerfile` 会构建 React UI，并由同一个 FastAPI 容器提供 UI、API 和迁移；`render.yaml` 会创建 Web Service 与 PostgreSQL 16 数据库。部署完成后：
 
-1. 在 Render 服务的 Environment 页面查看或重置自动生成的 `WANDERMIND_ACCESS_PASSWORD`。
-2. 使用用户名 `wandermind` 和该密码访问服务 URL。
-3. 打开 `/health` 检查服务；该探针故意不要求认证。
+1. 打开服务 URL，直接进入 WanderMind。
+2. 打开 `/health` 检查服务状态。
+3. 如需私有单用户部署，可自行设置 `WANDERMIND_ACCESS_USERNAME` 与非空的 `WANDERMIND_ACCESS_PASSWORD` 启用可选 Basic Auth。
 
 Render 免费 Web Service 会在空闲时休眠，免费 PostgreSQL 数据库会在创建 30 天后到期，因此只适合试用。长期保存个人知识时应切换付费数据库并配置备份。完整步骤见 `docs/deployment.md`。
 
@@ -151,7 +151,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/demo.ps1
 复制 `.env.example`。常用配置：
 
 - `WANDERMIND_DATABASE_URL`：SQLAlchemy async URL。
-- `WANDERMIND_ACCESS_USERNAME` / `WANDERMIND_ACCESS_PASSWORD`：可选全站 Basic Auth；公网部署必须设置强密码。
+- `WANDERMIND_ACCESS_USERNAME` / `WANDERMIND_ACCESS_PASSWORD`：可选全站 Basic Auth；启用时必须设置强密码。
 - `WANDERMIND_STATIC_DIR`：由后端托管前端构建产物的目录，通常仅由统一部署镜像设置。
 - `WANDERMIND_RUNTIME_ADAPTER=mock|codex|openai`：Runtime 实现。
 - `WANDERMIND_CODEX_EXECUTABLE` / `WANDERMIND_RUNTIME_CWD`：Codex App Server。

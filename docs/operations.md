@@ -70,8 +70,8 @@ OpenAI-compatible Runtime 的 401/403 通常表示密钥无效或权限不足；
 - 只接受 UTF-8 文本文档；V0.1 不解析 PDF/Office/HTML。
 - Codex Runtime 默认只读、无网络、无审批提示。
 - LLM API key 只从环境 Secret 读取，不进入 Runtime metadata、usage 或结构化日志。
-- 公网部署必须设置非空 `WANDERMIND_ACCESS_PASSWORD` 并只使用 HTTPS；`/health` 是唯一公开路径。
-- V0.1 的 Basic Auth 只提供单用户访问门；不提供公网速率限制、租户隔离或细粒度权限。
-- 轮换密码后重启所有 Web Service 副本，并验证匿名 UI/API 返回 401。
+- 公开演示部署不得存放隐私、机密或受监管数据，并应只使用 HTTPS。
+- 需要私有访问时设置非空 `WANDERMIND_ACCESS_PASSWORD`；Basic Auth 只提供单用户访问门，不提供公网速率限制、租户隔离或细粒度权限。
+- 启用或轮换密码后重启所有 Web Service 副本，并验证匿名 UI/API 返回 401。
 
 托管平台部署、密码获取和回滚步骤见 `docs/deployment.md`。

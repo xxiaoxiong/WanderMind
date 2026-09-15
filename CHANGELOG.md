@@ -8,6 +8,10 @@
 - OpenAI-compatible runtime with Agnes defaults, JSON Schema validation, retries, timeout handling and token usage tracking.
 - Live multilingual business-flow smoke script covering exploration, evidence, critique and adversarial source invention.
 
+### Changed
+
+- Render Blueprint now exposes the trial instance without Basic Auth by default; self-hosters can still enable the optional access gate with environment variables.
+
 ### Security
 
 - Evidence source references are enforced against the supplied knowledge-context allowlist.

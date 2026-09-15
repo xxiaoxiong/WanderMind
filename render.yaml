@@ -16,10 +16,6 @@ services:
           property: connectionString
       - key: WANDERMIND_CORS_ORIGINS
         value: '[]'
-      - key: WANDERMIND_ACCESS_USERNAME
-        value: wandermind
-      - key: WANDERMIND_ACCESS_PASSWORD
-        generateValue: true
       - key: WANDERMIND_RUNTIME_ADAPTER
         value: openai
       - key: WANDERMIND_LLM_BASE_URL
