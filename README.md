@@ -63,6 +63,8 @@ Compose 会启动 pgvector/PostgreSQL、执行 Alembic 迁移、启动 API 与 N
 
 ## 线上部署
 
+[当前试用实例](https://wandermind-p6jg.onrender.com)（用户名 `wandermind`；密码在 Render Environment 的 `WANDERMIND_ACCESS_PASSWORD` 中）
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/xxiaoxiong/WanderMind)
 
 仓库根目录的 `Dockerfile` 会构建 React UI，并由同一个 FastAPI 容器提供 UI、API 和迁移；`render.yaml` 会创建 Web Service 与 PostgreSQL 16 数据库。部署完成后：

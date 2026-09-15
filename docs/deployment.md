@@ -1,5 +1,7 @@
 # 线上部署
 
+当前试用实例：<https://wandermind-p6jg.onrender.com>。2026-09-15 验收时，首次 Docker 构建、Alembic `0001 -> 0002`、公开 `/health` 与匿名访问 401 均通过。用户名为 `wandermind`，密码由 Render 生成并保存在服务 Environment 页面。
+
 ## Render Blueprint
 
 仓库包含 `render.yaml` 与根目录 `Dockerfile`。统一镜像在构建阶段编译 React，运行阶段由 FastAPI 同源提供 UI 和 API，并在每次启动前执行 `alembic upgrade head`。

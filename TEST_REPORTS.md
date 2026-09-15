@@ -19,5 +19,7 @@
 | Backup/restore | PASS | pg_dump/pg_restore 临时库回放 120 条 |
 | Unified online image | PASS | React + FastAPI 多阶段构建；静态 UI 200；匿名 401；授权 API/UI 200 |
 | Hosted deployment config | PASS | Render Blueprint、托管 PostgreSQL URL 规范化、启动时 Alembic 迁移 |
+| Public deployment | PASS | Render Web + PostgreSQL 创建成功；公网 health 200；匿名 UI 401 |
+| GitHub Actions | PASS | `main` 首次推送后的远端 CI 全部成功 |
 
 详细环境、命令、指标与发布边界见 `docs/release/v0.1_test_report.md`。人工 10 Seed UX 验收、branch protection 和 Git tag/release 仍需仓库所有者完成。
