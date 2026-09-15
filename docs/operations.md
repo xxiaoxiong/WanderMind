@@ -53,6 +53,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore.ps1 `
 
 核心 Wander 不依赖 Runtime。Deep Explore 会返回失败 Evidence、Critic reject，不能伪造来源。恢复后可重新点击 Continue Exploring。
 
+OpenAI-compatible Runtime 的 401/403 通常表示密钥无效或权限不足；404 表示端点或模型名不匹配；429/5xx 会按配置重试。排障时只记录 HTTP 状态、request ID 和错误类型，不输出 Authorization、密钥或完整供应商响应。可在 `backend` 目录运行 `.venv/Scripts/python.exe scripts/run_live_llm_smoke.py --scenario safety` 验证引用防护。
+
 ### Scheduler 重复
 
 立即将 `WANDERMIND_ENABLE_SCHEDULER=false`，保留一个 leader 后再启用。检查近期开启的 Random Revival Seeds。
@@ -67,6 +69,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore.ps1 `
 - 反向代理与应用同时限制请求体。
 - 只接受 UTF-8 文本文档；V0.1 不解析 PDF/Office/HTML。
 - Codex Runtime 默认只读、无网络、无审批提示。
+- LLM API key 只从环境 Secret 读取，不进入 Runtime metadata、usage 或结构化日志。
 - 公网部署必须设置非空 `WANDERMIND_ACCESS_PASSWORD` 并只使用 HTTPS；`/health` 是唯一公开路径。
 - V0.1 的 Basic Auth 只提供单用户访问门；不提供公网速率限制、租户隔离或细粒度权限。
 - 轮换密码后重启所有 Web Service 副本，并验证匿名 UI/API 返回 401。

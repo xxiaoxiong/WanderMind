@@ -15,11 +15,11 @@ WanderMind 是一个**可控、可解释、可评估**的认知漫游引擎。�
 - Analogy、Conceptual Blend、Counterfactual、Inversion、Abstraction、Second-order 共六类算子。
 - 显式状态机、时间/步数/候选/Runtime 预算、结构化 Trace 与 SSE 回放。
 - 多维评分、冗余/任意性/幻觉风险惩罚、阈值化静默机制。
-- 可替换 RuntimeAdapter；Mock/Codex App Server 适配器及会话、耗时、调用成本持久化。
+- 可替换 RuntimeAdapter；Mock、Codex App Server、OpenAI-compatible 适配器及会话、耗时、调用成本持久化。
 - Explorer / Evidence / Independent Critic 深度评估；无引用时绝不伪造证据。
 - APScheduler 孵化、跨时间配对、近期知识 Seed、Re-Wonder 血缘。
 - FastAPI + SQLAlchemy + PostgreSQL/pgvector；SQLite 可用于本地与测试。
-- React 19 四页 UI：Inbox、Wander、Wonders、Wonder Detail。
+- React 19 四页 UI：Inbox、Wander、Wonders、Wonder Detail；支持中英文与亮/暗主题持久化切换。
 - 后端单测/集成测试、前端单测、Playwright E2E、认知基准和 1000×100 压力冒烟。
 
 ## 架构
@@ -34,6 +34,7 @@ flowchart LR
     APP --> RUNTIME["RuntimeAdapter"]
     RUNTIME --> MOCK["Mock Runtime"]
     RUNTIME --> CODEX["Codex App Server"]
+    RUNTIME --> LLM["OpenAI-compatible LLM"]
 ```
 
 核心包 `backend/src/wandermind/cognitive` 不依赖 FastAPI、ORM 或 Codex。详细边界、状态流转与数据模型见 `docs/architecture.md`；架构决策见 `DECISIONS.md`。
@@ -152,8 +153,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/demo.ps1
 - `WANDERMIND_DATABASE_URL`：SQLAlchemy async URL。
 - `WANDERMIND_ACCESS_USERNAME` / `WANDERMIND_ACCESS_PASSWORD`：可选全站 Basic Auth；公网部署必须设置强密码。
 - `WANDERMIND_STATIC_DIR`：由后端托管前端构建产物的目录，通常仅由统一部署镜像设置。
-- `WANDERMIND_RUNTIME_ADAPTER=mock|codex`：Runtime 实现。
+- `WANDERMIND_RUNTIME_ADAPTER=mock|codex|openai`：Runtime 实现。
 - `WANDERMIND_CODEX_EXECUTABLE` / `WANDERMIND_RUNTIME_CWD`：Codex App Server。
+- `WANDERMIND_LLM_BASE_URL` / `WANDERMIND_LLM_API_KEY` / `WANDERMIND_LLM_MODEL`：OpenAI-compatible 模型端点、密钥与模型名。
 - `WANDERMIND_WONDER_THRESHOLD`：呈现阈值。
 - `WANDERMIND_ENABLE_SCHEDULER`：后台孵化。
 - `WANDERMIND_MAX_REQUEST_BYTES`：API 请求上限。
@@ -200,11 +202,25 @@ cd backend
 
 当前官方 Codex SDK 重点支持 TypeScript；本项目是 Python 后端，因此采用官方文档提供的 App Server 协议作为语言无关集成边界。参见 [Codex SDK](https://developers.openai.com/codex/sdk/) 与 [Codex App Server](https://developers.openai.com/codex/app-server/)。
 
+## OpenAI-compatible Runtime
+
+将 `WANDERMIND_RUNTIME_ADAPTER` 设置为 `openai` 后，Explorer、Evidence 与 Independent Critic 会调用 `${WANDERMIND_LLM_BASE_URL}/chat/completions`。适配器强制 JSON Schema 二次校验、错误分类、超时/重试、token 用量记录，并在服务端对白名单之外的 Evidence 引用做清空处理。
+
+```dotenv
+WANDERMIND_RUNTIME_ADAPTER=openai
+WANDERMIND_LLM_BASE_URL=https://apihub.agnes-ai.com/v1
+WANDERMIND_LLM_API_KEY=<secret>
+WANDERMIND_LLM_MODEL=agnes-2.5-flash
+```
+
+密钥只能通过本地 `.env` 或托管平台 Secret 注入，不得提交。可在 `backend` 目录运行 `.venv/Scripts/python.exe scripts/run_live_llm_smoke.py`，验证中文跨域、英文业务运营和伪造引用防护三个场景。
+
 ## 运维与排错
 
 - `/health` 失败：检查数据库连接和 Compose healthcheck。
 - Alembic 失败：确认 pgvector 镜像已就绪，运行 `alembic upgrade head`。
 - Codex Runtime 不可用：先保持 `mock` 验证系统，再确认 `codex app-server --help`。
+- OpenAI-compatible Runtime 失败：检查 Base URL、模型名、密钥余额和供应商兼容性；不要在日志中输出响应头或密钥。
 - 前端 API 失败：本地 Vite 代理指向 `localhost:8000`；容器内由 Nginx 代理。
 - 上传被拒绝：仅支持 UTF-8 文本，Nginx 与 API 均限制约 2 MB。
 

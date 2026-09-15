@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { WonderScores } from "../types";
+import { usePreferences } from "../preferences";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return <p className="eyebrow">{children}</p>;
@@ -20,28 +21,30 @@ export function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-export function LoadingOrbit({ label = "Thinking across the edges" }: { label?: string }) {
+export function LoadingOrbit({ label }: { label?: string }) {
+  const { t } = usePreferences();
   return (
     <div className="loading-orbit" role="status">
       <span className="orbit-ring"><span /></span>
-      <p>{label}</p>
+      <p>{label ?? t("loading.default")}</p>
     </div>
   );
 }
 
 export function StatusPill({ status }: { status: string }) {
-  return <span className={"status-pill status-" + status}>{status.replaceAll("_", " ")}</span>;
+  const { labelCode } = usePreferences();
+  return <span className={"status-pill status-" + status}>{labelCode(status)}</span>;
 }
 
-const scoreLabels: Array<[keyof WonderScores, string]> = [
-  ["novelty", "Novelty"],
-  ["coherence", "Coherence"],
-  ["usefulness", "Usefulness"],
-  ["surprise", "Surprise"],
-  ["evidence_potential", "Evidence"],
-];
-
 export function ScoreGrid({ scores }: { scores: WonderScores }) {
+  const { t } = usePreferences();
+  const scoreLabels: Array<[keyof WonderScores, string]> = [
+    ["novelty", t("score.novelty")],
+    ["coherence", t("score.coherence")],
+    ["usefulness", t("score.usefulness")],
+    ["surprise", t("score.surprise")],
+    ["evidence_potential", t("score.evidence")],
+  ];
   return (
     <div className="score-grid">
       {scoreLabels.map(([key, label]) => (

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Persistent English/Simplified Chinese UI switching and OS-aware light/dark themes.
+- OpenAI-compatible runtime with Agnes defaults, JSON Schema validation, retries, timeout handling and token usage tracking.
+- Live multilingual business-flow smoke script covering exploration, evidence, critique and adversarial source invention.
+
+### Security
+
+- Evidence source references are enforced against the supplied knowledge-context allowlist.
+
 ## 0.1.0 — 2026-09-15
 
 ### Added

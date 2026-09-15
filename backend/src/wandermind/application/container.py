@@ -5,7 +5,12 @@ from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from wandermind.application.deletion_service import DataDeletionService
-from wandermind.application.evaluation import CriticOutput, EvidenceOutput, ExplorerOutput
+from wandermind.application.evaluation import (
+    CriticOutput,
+    CriticVerdict,
+    EvidenceOutput,
+    ExplorerOutput,
+)
 from wandermind.application.explore_service import (
     CriticService,
     DeepEvaluationService,
@@ -29,7 +34,12 @@ from wandermind.infrastructure.database import create_engine, create_session_fac
 from wandermind.infrastructure.tracked_runtime import TrackedRuntimeAdapter
 from wandermind.repositories import InMemoryRepositoryBundle, SQLAlchemyRepositoryBundle
 from wandermind.repositories.protocols import RepositoryBundle
-from wandermind.runtime import AgentRuntimeAdapter, CodexRuntimeAdapter, MockRuntimeAdapter
+from wandermind.runtime import (
+    AgentRuntimeAdapter,
+    CodexRuntimeAdapter,
+    MockRuntimeAdapter,
+    OpenAICompatibleRuntimeAdapter,
+)
 
 
 @dataclass(slots=True)
@@ -86,9 +96,21 @@ def build_container(
         selected_repositories.runtime_sessions,
     )
     deep_evaluation = DeepEvaluationService(
-        ExplorerService(selected_runtime, max_retries=settings.runtime_max_retries),
-        EvidenceService(selected_runtime, max_retries=settings.runtime_max_retries),
-        CriticService(selected_runtime, max_retries=settings.runtime_max_retries),
+        ExplorerService(
+            selected_runtime,
+            max_retries=settings.runtime_max_retries,
+            timeout_seconds=settings.runtime_timeout_seconds,
+        ),
+        EvidenceService(
+            selected_runtime,
+            max_retries=settings.runtime_max_retries,
+            timeout_seconds=settings.runtime_timeout_seconds,
+        ),
+        CriticService(
+            selected_runtime,
+            max_retries=settings.runtime_max_retries,
+            timeout_seconds=settings.runtime_timeout_seconds,
+        ),
     )
     incubation = IncubationService(selected_repositories, wander_engine)
     return ApplicationContainer(
@@ -129,6 +151,16 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
             cwd=settings.runtime_cwd,
             allow_workspace_write=False,
         )
+    if settings.runtime_adapter == "openai":
+        if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
+            raise ValueError("WANDERMIND_LLM_API_KEY is required for the OpenAI runtime")
+        return OpenAICompatibleRuntimeAdapter(
+            base_url=settings.llm_base_url,
+            credential=settings.llm_api_key,
+            model=settings.llm_model,
+            temperature=settings.llm_temperature,
+            max_output_tokens=settings.llm_max_output_tokens,
+        )
     return MockRuntimeAdapter(
         responses={
             "explorer": ExplorerOutput(
@@ -152,7 +184,7 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
                 alternative_explanation=[
                     "The overlap may come from generic resource-allocation language."
                 ],
-                verdict="pass",
+                verdict=CriticVerdict.PASS,
             ).model_dump(mode="json"),
         }
     )

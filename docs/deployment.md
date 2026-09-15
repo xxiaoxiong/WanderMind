@@ -9,9 +9,10 @@
 1. 打开 [Deploy to Render](https://render.com/deploy?repo=https://github.com/xxiaoxiong/WanderMind)。
 2. 登录 Render，检查 Blueprint 中的 Web Service 与 PostgreSQL 数据库，确认没有产生非预期付费项目。
 3. 创建资源并等待 `/health` 变为 200。
-4. 在 Web Service 的 Environment 页面查看或重置 `WANDERMIND_ACCESS_PASSWORD`。
-5. 访问服务 URL，用户名为 `wandermind`，密码为上一步的值。
-6. 导入一条非敏感测试知识并执行 Wander；确认刷新页面后数据仍存在。
+4. 在 Web Service 的 Environment 页面以 Secret 添加 `WANDERMIND_LLM_API_KEY`；Blueprint 已配置 `openai`、Agnes APIHub URL 与 `agnes-2.5-flash`，但不会保存真实密钥。
+5. 查看或重置 `WANDERMIND_ACCESS_PASSWORD`。
+6. 访问服务 URL，用户名为 `wandermind`，密码为上一步的值。
+7. 导入两条非敏感测试知识，执行 Wander 并对 Wonder 运行深度探索；确认 Runtime Session provider 为 `openai-compatible`，刷新页面后数据仍存在。
 
 Blueprint 将 Render 的 `connectionString` 注入 `WANDERMIND_DATABASE_URL`。应用会把 `postgresql://` 或 `postgres://` 自动转换为 asyncpg URL。PostgreSQL 迁移会创建 `vector` 扩展及 V0.1 schema。
 
@@ -25,6 +26,7 @@ Blueprint 将 Render 的 `connectionString` 注入 `WANDERMIND_DATABASE_URL`。�
 ## 安全
 
 - 不要删除 `WANDERMIND_ACCESS_PASSWORD`；为空会关闭访问保护。
+- 不要把 `WANDERMIND_LLM_API_KEY` 写进 Blueprint、镜像、构建参数或 Git；只使用 Render Secret，并在怀疑泄漏时立即轮换。
 - 首次部署后轮换自动生成的密码，并使用密码管理器保存。
 - Basic Auth 只能在平台提供的 HTTPS 地址上使用。
 - `/health` 保持公开；UI、API、OpenAPI 文档和指标均需要认证。

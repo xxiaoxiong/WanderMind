@@ -141,3 +141,33 @@ test("lists curated wonders", async ({ page }) => {
   await expect(page.getByText(wonder.statement)).toBeVisible();
   await expect(page.getByRole("link", { name: "Why?" })).toHaveAttribute("href", "#/wonders/wonder-1");
 });
+
+test("persists Chinese and light appearance preferences", async ({ page }) => {
+  await page.addInitScript(() => {
+    const storage = Reflect.get(globalThis, "localStorage") as {
+      getItem(key: string): string | null;
+      setItem(key: string, value: string): void;
+    };
+    if (storage.getItem("wandermind-language") === null) {
+      storage.setItem("wandermind-language", "en");
+    }
+    if (storage.getItem("wandermind-theme") === null) {
+      storage.setItem("wandermind-theme", "dark");
+    }
+  });
+  await page.route("**/api/v1/knowledge?limit=100", async (route) => {
+    await route.fulfill({ json: { items: [], offset: 0, limit: 100 } });
+  });
+
+  await page.goto("/#/inbox");
+  await page.getByRole("button", { name: "Switch to Chinese" }).click();
+  await page.getByRole("button", { name: "切换为亮色主题" }).click();
+
+  await expect(page.getByText("灵感收集")).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  await page.reload();
+  await expect(page.getByText("洞见成果")).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});

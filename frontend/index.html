@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +9,16 @@
       content="WanderMind turns scattered knowledge into explainable, surprising connections."
     />
     <title>WanderMind</title>
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("wandermind-theme");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch {
+        document.documentElement.dataset.theme = "dark";
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

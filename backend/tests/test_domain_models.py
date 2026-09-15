@@ -4,7 +4,9 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
+from wandermind.application.container import in_memory_container
 from wandermind.infrastructure.config import Settings
+from wandermind.infrastructure.tracked_runtime import TrackedRuntimeAdapter
 from wandermind.models import (
     KnowledgeEdge,
     KnowledgeItem,
@@ -14,6 +16,7 @@ from wandermind.models import (
     WanderSession,
     WonderScores,
 )
+from wandermind.runtime import OpenAICompatibleRuntimeAdapter
 
 
 @pytest.mark.parametrize("scheme", ["postgresql", "postgres"])
@@ -23,6 +26,34 @@ def test_settings_normalizes_hosted_postgres_urls(scheme: str) -> None:
     assert settings.database_url == (
         "postgresql+asyncpg://user:password@database.example/wandermind"
     )
+
+
+def test_settings_normalizes_llm_base_url() -> None:
+    settings = Settings(llm_base_url="https://example.test/v1/")
+
+    assert settings.llm_base_url == "https://example.test/v1"
+
+
+def test_openai_runtime_requires_api_key() -> None:
+    with pytest.raises(ValueError, match="WANDERMIND_LLM_API_KEY"):
+        in_memory_container(Settings(env="test", runtime_adapter="openai"))
+
+
+def test_container_builds_openai_compatible_runtime() -> None:
+    container = in_memory_container(
+        Settings(
+            env="test",
+            runtime_adapter="openai",
+            llm_api_key="test-secret",
+            llm_base_url="https://example.test/v1/",
+            llm_model="test-model",
+        )
+    )
+
+    assert isinstance(container.runtime, TrackedRuntimeAdapter)
+    assert isinstance(container.runtime.delegate, OpenAICompatibleRuntimeAdapter)
+    assert container.runtime.delegate.base_url == "https://example.test/v1"
+    assert container.runtime.delegate.model == "test-model"
 
 
 def test_knowledge_item_serialization_and_label_normalization() -> None:

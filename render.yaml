@@ -21,7 +21,17 @@ services:
       - key: WANDERMIND_ACCESS_PASSWORD
         generateValue: true
       - key: WANDERMIND_RUNTIME_ADAPTER
-        value: mock
+        value: openai
+      - key: WANDERMIND_LLM_BASE_URL
+        value: https://apihub.agnes-ai.com/v1
+      - key: WANDERMIND_LLM_API_KEY
+        sync: false
+      - key: WANDERMIND_LLM_MODEL
+        value: agnes-2.5-flash
+      - key: WANDERMIND_LLM_TEMPERATURE
+        value: "0.2"
+      - key: WANDERMIND_LLM_MAX_OUTPUT_TOKENS
+        value: "2000"
       - key: WANDERMIND_AUTO_CREATE_SCHEMA
         value: "false"
       - key: WANDERMIND_ENABLE_SCHEDULER

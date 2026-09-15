@@ -11,3 +11,5 @@
 9. 用户偏好只保存显式 Feedback，尚未训练个性化排序器。
 10. 自动 benchmark 是 proxy；人工 UX 与认知价值评分必须由仓库所有者完成。
 11. `render.yaml` 的免费 PostgreSQL 仅适合试用，会在创建 30 天后到期；长期使用必须升级数据库并配置备份。
+12. OpenAI-compatible Runtime 当前面向 `/chat/completions` 协议；不同供应商的专有参数、Responses API、工具调用和原生流式 token 尚未适配。
+13. 双语切换覆盖产品 UI 与模型深探提示，用户导入的知识、历史 Wonder 和 API 错误正文不会被自动翻译。

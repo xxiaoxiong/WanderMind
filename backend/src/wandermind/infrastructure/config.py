@@ -25,9 +25,14 @@ class Settings(BaseSettings):
     access_password: SecretStr | None = None
     static_dir: str | None = None
     embedding_dimensions: int = Field(default=96, ge=8, le=4_096)
-    runtime_adapter: Literal["mock", "codex"] = "mock"
+    runtime_adapter: Literal["mock", "codex", "openai"] = "mock"
     codex_executable: str = "codex"
     runtime_cwd: str | None = None
+    llm_base_url: str = "https://apihub.agnes-ai.com/v1"
+    llm_api_key: SecretStr | None = None
+    llm_model: str = Field(default="agnes-2.5-flash", min_length=1, max_length=200)
+    llm_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    llm_max_output_tokens: int = Field(default=2_000, ge=128, le=32_000)
     runtime_timeout_seconds: float = Field(default=60.0, gt=0, le=3_600)
     runtime_max_retries: int = Field(default=2, ge=0, le=10)
     wonder_threshold: float = Field(default=0.58, ge=0.0, le=1.0)
@@ -68,6 +73,14 @@ class Settings(BaseSettings):
         if isinstance(value, str) and value.startswith("postgres://"):
             return value.replace("postgres://", "postgresql+asyncpg://", 1)
         return value
+
+    @field_validator("llm_base_url")
+    @classmethod
+    def normalize_llm_base_url(cls, value: str) -> str:
+        normalized = value.rstrip("/")
+        if not normalized.startswith(("https://", "http://")):
+            raise ValueError("LLM base URL must use HTTP or HTTPS")
+        return normalized
 
 
 @lru_cache

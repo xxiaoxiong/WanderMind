@@ -163,6 +163,27 @@ async def test_explorer_evidence_and_critic_validate_outputs() -> None:
     assert evidence.uncertainty >= 0.8
     assert all(session.status.value == "closed" for session in evidence_runtime.sessions.values())
 
+    invented_reference_runtime = MockRuntimeAdapter(
+        response=EvidenceOutput(
+            supporting_evidence=["Invented support"],
+            source_refs=["https://invented.example/source"],
+            uncertainty=0.1,
+        ).model_dump(mode="json")
+    )
+    invented_reference = await EvidenceService(invented_reference_runtime).collect(
+        candidate(),
+        [
+            KnowledgeItem(
+                title="Sourced context",
+                content="Context content",
+                source_ref="https://trusted.example/source",
+            )
+        ],
+    )
+    assert invented_reference.source_refs == []
+    assert invented_reference.supporting_evidence == []
+    assert invented_reference.uncertainty >= 0.8
+
     critic_runtime = MockRuntimeAdapter(mode=MockRuntimeMode.FAILURE)
     critic = await CriticService(critic_runtime).critique(candidate(), evidence)
     assert critic.verdict is CriticVerdict.REJECT

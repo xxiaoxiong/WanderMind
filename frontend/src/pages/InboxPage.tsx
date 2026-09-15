@@ -4,8 +4,10 @@ import { api, ApiError } from "../api";
 import { Eyebrow, Notice } from "../components/Primitives";
 import type { KnowledgeItem } from "../types";
 import { navigate } from "../App";
+import { usePreferences } from "../preferences";
 
 export function InboxPage() {
+  const { formatDate, labelCode, t } = usePreferences();
   const [thought, setThought] = useState("");
   const [note, setNote] = useState("");
   const [title, setTitle] = useState("");
@@ -21,8 +23,11 @@ export function InboxPage() {
   };
 
   useEffect(() => {
-    void refresh().catch(() => setKnowledge([]));
-  }, []);
+    void refresh().catch(() => {
+      setKnowledge([]);
+      setError(t("inbox.loadError"));
+    });
+  }, [t]);
 
   const submitThought = async () => {
     if (!thought.trim()) return;
@@ -33,7 +38,7 @@ export function InboxPage() {
       setThought("");
       navigate("/wander?seed=" + seed.id);
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Could not capture the thought.");
+      setError(caught instanceof ApiError ? caught.message : t("inbox.captureError"));
     } finally {
       setBusy(false);
     }
@@ -47,10 +52,10 @@ export function InboxPage() {
       await api.createKnowledge({ title: title.trim() || undefined, content: note.trim() });
       setTitle("");
       setNote("");
-      setMessage("Knowledge added to the field.");
+      setMessage(t("inbox.saved"));
       await refresh();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Could not save the note.");
+      setError(caught instanceof ApiError ? caught.message : t("inbox.saveError"));
     } finally {
       setBusy(false);
     }
@@ -61,10 +66,10 @@ export function InboxPage() {
     setError(null);
     try {
       await api.uploadDocument(file);
-      setMessage(file.name + " entered the knowledge field.");
+      setMessage(t("inbox.uploaded", { file: file.name }));
       await refresh();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Could not upload the document.");
+      setError(caught instanceof ApiError ? caught.message : t("inbox.uploadError"));
     } finally {
       setBusy(false);
     }
@@ -74,16 +79,13 @@ export function InboxPage() {
     <div className="page inbox-page">
       <header className="page-header hero-header">
         <div>
-          <Eyebrow>Unfinished thoughts belong here</Eyebrow>
-          <h1>Drop a thought.<br /><em>Let it wander.</em></h1>
-          <p>
-            Capture a question, half-formed idea, or stubborn tension. WanderMind will connect it to
-            the knowledge already in your field.
-          </p>
+          <Eyebrow>{t("inbox.eyebrow")}</Eyebrow>
+          <h1>{t("inbox.heading")}<br /><em>{t("inbox.headingAccent")}</em></h1>
+          <p>{t("inbox.intro")}</p>
         </div>
         <div className="field-stat">
           <strong>{String(knowledge.length).padStart(2, "0")}</strong>
-          <span>knowledge fragments</span>
+          <span>{t("inbox.fragments")}</span>
         </div>
       </header>
 
@@ -92,15 +94,15 @@ export function InboxPage() {
 
       <section className="thought-composer">
         <textarea
-          aria-label="Drop a thought"
-          placeholder="What keeps returning to your mind?"
+          aria-label={t("inbox.thoughtAria")}
+          placeholder={t("inbox.thoughtPlaceholder")}
           value={thought}
           onChange={(event) => setThought(event.target.value)}
         />
         <div className="composer-footer">
-          <span>Seed a directed wander</span>
+          <span>{t("inbox.seedHint")}</span>
           <button className="button button-primary" disabled={busy || !thought.trim()} onClick={() => void submitThought()}>
-            Begin wandering <span aria-hidden="true">↗</span>
+            {t("inbox.begin")} <span aria-hidden="true">↗</span>
           </button>
         </div>
       </section>
@@ -108,8 +110,8 @@ export function InboxPage() {
       <div className="inbox-grid">
         <section className="panel capture-panel">
           <div className="panel-heading">
-            <div><span>Knowledge capture</span><h2>Add context to your mind</h2></div>
-            <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Upload text document">＋</button>
+            <div><span>{t("inbox.captureLabel")}</span><h2>{t("inbox.captureTitle")}</h2></div>
+            <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label={t("inbox.uploadAria")}>＋</button>
           </div>
           <input
             hidden
@@ -123,33 +125,33 @@ export function InboxPage() {
           />
           <input
             className="line-input"
-            placeholder="Optional title"
+            placeholder={t("inbox.optionalTitle")}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
           <textarea
             className="note-input"
-            placeholder="Paste a note, observation, excerpt, or concept..."
+            placeholder={t("inbox.notePlaceholder")}
             value={note}
             onChange={(event) => setNote(event.target.value)}
           />
-          <button className="button" disabled={busy || !note.trim()} onClick={() => void saveNote()}>Save fragment</button>
+          <button className="button" disabled={busy || !note.trim()} onClick={() => void saveNote()}>{t("inbox.saveFragment")}</button>
         </section>
 
         <section className="panel recent-panel">
           <div className="panel-heading">
-            <div><span>Recent material</span><h2>Your active knowledge field</h2></div>
+            <div><span>{t("inbox.recentLabel")}</span><h2>{t("inbox.recentTitle")}</h2></div>
             <span className="panel-count">{knowledge.length}</span>
           </div>
           <div className="knowledge-list">
             {knowledge.slice(0, 6).map((item) => (
               <article key={item.id}>
-                <span>{item.type}</span>
+                <span>{labelCode(item.type)}</span>
                 <div><h3>{item.title}</h3><p>{item.summary}</p></div>
-                <time>{new Date(item.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time>
+                <time>{formatDate(item.created_at, { month: "short", day: "numeric" })}</time>
               </article>
             ))}
-            {!knowledge.length ? <p className="muted">No fragments yet. Add two or more to unlock wandering.</p> : null}
+            {!knowledge.length ? <p className="muted">{t("inbox.empty")}</p> : null}
           </div>
         </section>
       </div>

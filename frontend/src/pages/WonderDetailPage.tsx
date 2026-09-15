@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { api, ApiError } from "../api";
 import { EmptyState, Eyebrow, LoadingOrbit, Notice, ScoreGrid, StatusPill } from "../components/Primitives";
+import { usePreferences } from "../preferences";
 import type { DeepExploreResponse, Wonder } from "../types";
 
 function ListSection({ title, items, empty }: { title: string; items: string[]; empty: string }) {
@@ -14,6 +15,7 @@ function ListSection({ title, items, empty }: { title: string; items: string[]; 
 }
 
 export function WonderDetailPage({ wonderId }: { wonderId: string }) {
+  const { labelCode, t } = usePreferences();
   const [wonder, setWonder] = useState<Wonder | null>(null);
   const [evaluation, setEvaluation] = useState<DeepExploreResponse["evaluation"] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,9 +26,9 @@ export function WonderDetailPage({ wonderId }: { wonderId: string }) {
   useEffect(() => {
     void api.getWonder(wonderId)
       .then(setWonder)
-      .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.message : "Could not load the wonder."))
+      .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.message : t("detail.loadError")))
       .finally(() => setLoading(false));
-  }, [wonderId]);
+  }, [t, wonderId]);
 
   const explore = async () => {
     setBusy(true);
@@ -35,9 +37,9 @@ export function WonderDetailPage({ wonderId }: { wonderId: string }) {
       const response = await api.exploreWonder(wonderId);
       setWonder(response.wonder);
       setEvaluation(response.evaluation);
-      setMessage("Explorer, evidence, and critic passes completed.");
+      setMessage(t("detail.exploreDone"));
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Deep exploration failed.");
+      setError(caught instanceof ApiError ? caught.message : t("detail.exploreError"));
     } finally {
       setBusy(false);
     }
@@ -49,9 +51,9 @@ export function WonderDetailPage({ wonderId }: { wonderId: string }) {
     try {
       const child = await api.rewonder(wonderId);
       if (child) window.location.hash = "/wonders/" + child.id;
-      else setMessage("No sufficiently new knowledge is available yet.");
+      else setMessage(t("detail.noNewKnowledge"));
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Re-wonder failed.");
+      setError(caught instanceof ApiError ? caught.message : t("detail.rewonderError"));
     } finally {
       setBusy(false);
     }
@@ -63,28 +65,28 @@ export function WonderDetailPage({ wonderId }: { wonderId: string }) {
     try {
       await api.feedback(wonderId, "save_for_later");
       setWonder((current) => current ? { ...current, status: "saved" } : current);
-      setMessage("Feedback saved.");
+      setMessage(t("detail.feedbackSaved"));
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Feedback could not be saved.");
+      setError(caught instanceof ApiError ? caught.message : t("detail.feedbackError"));
     } finally {
       setBusy(false);
     }
   };
 
-  if (loading) return <LoadingOrbit label="Opening the connection" />;
-  if (!wonder) return <EmptyState title="Wonder not found" body={error || "This connection is no longer available."} />;
+  if (loading) return <LoadingOrbit label={t("detail.opening")} />;
+  if (!wonder) return <EmptyState title={t("detail.notFound")} body={error || t("detail.unavailable")} />;
 
   return (
     <div className="page detail-page">
-      <a className="back-link" href="#/wonders">← Back to wonders</a>
+      <a className="back-link" href="#/wonders">{t("detail.back")}</a>
       <header className="detail-hero">
         <div>
-          <div className="wonder-card-meta"><Eyebrow>{wonder.type}</Eyebrow><StatusPill status={wonder.status} /></div>
+          <div className="wonder-card-meta"><Eyebrow>{labelCode(wonder.type)}</Eyebrow><StatusPill status={wonder.status} /></div>
           <h1>{wonder.statement}</h1>
           <p>{wonder.why_interesting}</p>
         </div>
         <div className="confidence-dial" style={{ "--confidence": String(wonder.confidence * 360) + "deg" } as React.CSSProperties}>
-          <strong>{Math.round(wonder.confidence * 100)}</strong><span>confidence</span>
+          <strong>{Math.round(wonder.confidence * 100)}</strong><span>{t("detail.confidence")}</span>
         </div>
       </header>
 
@@ -93,31 +95,31 @@ export function WonderDetailPage({ wonderId }: { wonderId: string }) {
 
       <div className="detail-layout">
         <div className="detail-main">
-          <section className="detail-section core-idea"><span>Core idea</span><p>{wonder.explanation}</p></section>
+          <section className="detail-section core-idea"><span>{t("detail.coreIdea")}</span><p>{wonder.explanation}</p></section>
           <section className="detail-section">
-            <span>Connection path</span>
+            <span>{t("detail.connectionPath")}</span>
             <div className="connection-path">
               {wonder.connection_path.map((id, index) => <div key={id}><b>{index + 1}</b><code>{id.slice(0, 8)}</code></div>)}
             </div>
           </section>
-          <ListSection title="Evidence" items={wonder.supporting_evidence} empty="No sourced evidence has been established." />
-          <ListSection title="Counter evidence" items={wonder.counter_evidence} empty="No counter evidence has been recorded." />
-          <ListSection title="Open questions" items={wonder.questions} empty="Explore the wonder to generate follow-up questions." />
+          <ListSection title={t("detail.evidence")} items={wonder.supporting_evidence} empty={t("detail.noEvidence")} />
+          <ListSection title={t("detail.counterEvidence")} items={wonder.counter_evidence} empty={t("detail.noCounterEvidence")} />
+          <ListSection title={t("detail.questions")} items={wonder.questions} empty={t("detail.noQuestions")} />
           {evaluation ? (
             <section className="critic-panel">
-              <div><span>Independent critic</span><strong>{evaluation.critic.verdict}</strong></div>
-              <p>{evaluation.critic.weakness.join(" ") || "No material weakness reported."}</p>
-              <small>Factual risk {Math.round(evaluation.critic.factual_risk * 100)} · Obviousness {Math.round(evaluation.critic.obviousness * 100)}</small>
+              <div><span>{t("detail.critic")}</span><strong>{labelCode(evaluation.critic.verdict)}</strong></div>
+              <p>{evaluation.critic.weakness.join(" ") || t("detail.noWeakness")}</p>
+              <small>{t("detail.factualRisk", { value: Math.round(evaluation.critic.factual_risk * 100) })} · {t("detail.obviousness", { value: Math.round(evaluation.critic.obviousness * 100) })}</small>
             </section>
           ) : null}
         </div>
         <aside className="detail-aside">
-          <section className="panel score-panel"><span>Signal profile</span><ScoreGrid scores={wonder.scores} /></section>
+          <section className="panel score-panel"><span>{t("detail.signalProfile")}</span><ScoreGrid scores={wonder.scores} /></section>
           <section className="panel action-panel">
-            <span>Next move</span>
-            <button className="button button-primary" disabled={busy} onClick={() => void explore()}>{busy ? "Working…" : "Continue exploring"}</button>
-            <button className="button" disabled={busy} onClick={() => void rewonder()}>Re-wonder with new knowledge</button>
-            <button className="button-quiet" disabled={busy} onClick={() => void save()}>Save this wonder</button>
+            <span>{t("detail.nextMove")}</span>
+            <button className="button button-primary" disabled={busy} onClick={() => void explore()}>{busy ? t("detail.working") : t("detail.continue")}</button>
+            <button className="button" disabled={busy} onClick={() => void rewonder()}>{t("detail.rewonder")}</button>
+            <button className="button-quiet" disabled={busy} onClick={() => void save()}>{t("detail.save")}</button>
           </section>
         </aside>
       </div>

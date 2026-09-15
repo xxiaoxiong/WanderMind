@@ -4,8 +4,10 @@ import { api, ApiError, streamWanderTrace } from "../api";
 import { Eyebrow, LoadingOrbit, Notice, StatusPill } from "../components/Primitives";
 import { TraceTimeline } from "../components/TraceTimeline";
 import type { WanderRunResponse, WanderStep } from "../types";
+import { usePreferences } from "../preferences";
 
 export function WanderPage({ seedId }: { seedId: string | null }) {
+  const { t } = usePreferences();
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<WanderRunResponse | null>(null);
   const [steps, setSteps] = useState<WanderStep[]>([]);
@@ -25,7 +27,7 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
         setSteps((current) => current.some((item) => item.id === step.id) ? current : [...current, step]);
       });
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "The wander could not be completed.");
+      setError(caught instanceof ApiError ? caught.message : t("wander.error"));
     } finally {
       setBusy(false);
     }
@@ -35,9 +37,9 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
     <div className="page wander-page">
       <header className="page-header">
         <div>
-          <Eyebrow>Structured wandering, not hidden reasoning</Eyebrow>
-          <h1>Follow the <em>connection path.</em></h1>
-          <p>Watch the engine retrieve, collide, transform, score, and surface ideas.</p>
+          <Eyebrow>{t("wander.eyebrow")}</Eyebrow>
+          <h1>{t("wander.heading")} <em>{t("wander.headingAccent")}</em></h1>
+          <p>{t("wander.intro")}</p>
         </div>
         {result ? <StatusPill status={result.session.status} /> : null}
       </header>
@@ -46,20 +48,20 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
       <section className="wander-console">
         <div className="wander-input-row">
           <input
-            aria-label="Wander seed"
+            aria-label={t("wander.seedAria")}
             disabled={Boolean(seedId)}
-            placeholder={seedId ? "Captured seed is ready" : "Give the mind a question or tension..."}
+            placeholder={seedId ? t("wander.seedReady") : t("wander.seedPlaceholder")}
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
           <button className="button button-primary" disabled={busy || (!seedId && !prompt.trim())} onClick={() => void run()}>
-            {busy ? "Wandering…" : "Run wander"}
+            {busy ? t("wander.running") : t("wander.run")}
           </button>
         </div>
         <div className="console-meta">
-          <span><i /> Local + remote retrieval</span>
-          <span><i /> Six cognitive operators</span>
-          <span><i /> {result ? String(result.candidates.length) + " candidate" + (result.candidates.length === 1 ? "" : "s") : "Independent scoring"}</span>
+          <span><i /> {t("wander.retrieval")}</span>
+          <span><i /> {t("wander.operators")}</span>
+          <span><i /> {result ? t(result.candidates.length === 1 ? "wander.candidate" : "wander.candidates", { count: result.candidates.length }) : t("wander.scoring")}</span>
         </div>
       </section>
 
@@ -68,24 +70,24 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
         <div className="wander-results">
           <section className="trace-section">
             <div className="section-heading">
-              <div><span>Trace</span><h2>How the mind moved</h2></div>
-              <strong>{steps.length || result.session.trace.steps.length} steps</strong>
+              <div><span>{t("wander.trace")}</span><h2>{t("wander.traceTitle")}</h2></div>
+              <strong>{t("wander.steps", { count: steps.length || result.session.trace.steps.length })}</strong>
             </div>
             <TraceTimeline steps={steps.length ? steps : result.session.trace.steps} />
           </section>
           <aside className="wander-outcome">
-            <span className="outcome-label">Surface result</span>
+            <span className="outcome-label">{t("wander.outcome")}</span>
             {result.wonders[0] ? (
               <>
                 <h2>{result.wonders[0].statement}</h2>
                 <p>{result.wonders[0].why_interesting}</p>
                 <div className="signal-number">{Math.round(result.wonders[0].scores.total * 100)}<small>/100</small></div>
-                <a className="button button-primary" href={"#/wonders/" + result.wonders[0].id}>Open wonder</a>
+                <a className="button button-primary" href={"#/wonders/" + result.wonders[0].id}>{t("wander.open")}</a>
               </>
             ) : (
               <>
-                <h2>No signal crossed the threshold.</h2>
-                <p>The engine kept the trace but chose silence over a weak or arbitrary idea.</p>
+                <h2>{t("wander.noSignal")}</h2>
+                <p>{t("wander.silence")}</p>
               </>
             )}
           </aside>

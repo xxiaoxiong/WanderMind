@@ -26,15 +26,23 @@ from wandermind.runtime import (
 
 
 class ExplorerService:
-    def __init__(self, runtime: AgentRuntimeAdapter, *, max_retries: int = 1) -> None:
+    def __init__(
+        self,
+        runtime: AgentRuntimeAdapter,
+        *,
+        max_retries: int = 1,
+        timeout_seconds: float = 60.0,
+    ) -> None:
         self.runtime = runtime
         self.max_retries = max_retries
+        self.timeout_seconds = timeout_seconds
 
     async def explore(self, candidate: Candidate, context: list[KnowledgeItem]) -> ExplorerOutput:
         session = await self.runtime.start_session("explorer")
         prompt = chr(10).join(
             [
                 "Expand the candidate without asserting unsupported facts. Return only JSON.",
+                _language_instruction(candidate),
                 f"Candidate: {candidate.statement}",
                 f"Explanation: {candidate.explanation}",
                 f"Context: {_context_payload(context)}",
@@ -44,6 +52,7 @@ class ExplorerService:
             prompt=prompt,
             output_schema=ExplorerOutput.model_json_schema(),
             sandbox=SandboxMode.READ_ONLY,
+            timeout_seconds=self.timeout_seconds,
             metadata={"wander_session_id": str(candidate.session_id)},
         )
         try:
@@ -62,15 +71,26 @@ class ExplorerService:
 
 
 class EvidenceService:
-    def __init__(self, runtime: AgentRuntimeAdapter, *, max_retries: int = 1) -> None:
+    def __init__(
+        self,
+        runtime: AgentRuntimeAdapter,
+        *,
+        max_retries: int = 1,
+        timeout_seconds: float = 60.0,
+    ) -> None:
         self.runtime = runtime
         self.max_retries = max_retries
+        self.timeout_seconds = timeout_seconds
 
     async def collect(self, candidate: Candidate, context: list[KnowledgeItem]) -> EvidenceOutput:
         session = await self.runtime.start_session("evidence")
         prompt = chr(10).join(
             [
-                "Find support and counter-evidence. Never invent a source reference. Return only JSON.",
+                "Find support and counter-evidence using only the supplied context. Return only JSON.",
+                "Copy source_refs exactly from non-empty Context source_ref values. If no supplied "
+                "source supports a claim, return empty evidence arrays and high uncertainty. Never "
+                "invent, infer, or transform a source reference.",
+                _language_instruction(candidate),
                 f"Candidate: {candidate.statement}",
                 f"Context: {_context_payload(context)}",
             ]
@@ -79,6 +99,7 @@ class EvidenceService:
             prompt=prompt,
             output_schema=EvidenceOutput.model_json_schema(),
             sandbox=SandboxMode.READ_ONLY,
+            timeout_seconds=self.timeout_seconds,
             metadata={"wander_session_id": str(candidate.session_id)},
         )
         try:
@@ -97,23 +118,27 @@ class EvidenceService:
             )
         finally:
             await _close_session(self.runtime, session)
-        if not evidence.source_refs:
-            evidence.supporting_evidence = []
-            evidence.counter_evidence = []
-            evidence.uncertainty = max(evidence.uncertainty, 0.8)
-        return evidence
+        return _sanitize_evidence(evidence, context)
 
 
 class CriticService:
-    def __init__(self, runtime: AgentRuntimeAdapter, *, max_retries: int = 1) -> None:
+    def __init__(
+        self,
+        runtime: AgentRuntimeAdapter,
+        *,
+        max_retries: int = 1,
+        timeout_seconds: float = 60.0,
+    ) -> None:
         self.runtime = runtime
         self.max_retries = max_retries
+        self.timeout_seconds = timeout_seconds
 
     async def critique(self, candidate: Candidate, evidence: EvidenceOutput) -> CriticOutput:
         session = await self.runtime.start_session("critic")
         prompt = chr(10).join(
             [
                 "Independently critique the candidate. Do not assume it is correct. Return only JSON.",
+                _language_instruction(candidate),
                 f"Candidate: {candidate.statement}",
                 f"Evidence: {evidence.model_dump_json()}",
             ]
@@ -122,6 +147,7 @@ class CriticService:
             prompt=prompt,
             output_schema=CriticOutput.model_json_schema(),
             sandbox=SandboxMode.READ_ONLY,
+            timeout_seconds=self.timeout_seconds,
             metadata={"wander_session_id": str(candidate.session_id)},
         )
         try:
@@ -134,7 +160,7 @@ class CriticService:
             return CriticOutput.model_validate(result.structured)
         except (RuntimeErrorBase, ValidationError):
             return CriticOutput(
-                weakness=["Independent critic was unavailable."],
+                weakness=[_critic_unavailable(candidate)],
                 factual_risk=1.0,
                 verdict=CriticVerdict.REJECT,
             )
@@ -200,6 +226,34 @@ def _context_payload(context: list[KnowledgeItem]) -> str:
         ],
         ensure_ascii=False,
     )
+
+
+def _sanitize_evidence(
+    evidence: EvidenceOutput,
+    context: list[KnowledgeItem],
+) -> EvidenceOutput:
+    allowed_refs = {item.source_ref for item in context if item.source_ref}
+    returned_refs = set(evidence.source_refs)
+    if not returned_refs or not returned_refs.issubset(allowed_refs):
+        evidence.supporting_evidence = []
+        evidence.counter_evidence = []
+        evidence.source_refs = []
+        evidence.uncertainty = max(evidence.uncertainty, 0.8)
+        return evidence
+    evidence.source_refs = list(dict.fromkeys(evidence.source_refs))
+    return evidence
+
+
+def _language_instruction(candidate: Candidate) -> str:
+    if any("\u4e00" <= character <= "\u9fff" for character in candidate.statement):
+        return "Write all human-readable JSON string values in Simplified Chinese."
+    return "Write all human-readable JSON string values in the candidate's language."
+
+
+def _critic_unavailable(candidate: Candidate) -> str:
+    if any("\u4e00" <= character <= "\u9fff" for character in candidate.statement):
+        return "独立批评器暂时不可用。"
+    return "Independent critic was unavailable."
 
 
 async def _close_session(runtime: AgentRuntimeAdapter, session: RuntimeSession) -> None:

@@ -12,9 +12,14 @@
 | `WANDERMIND_ACCESS_PASSWORD` | 空 | 非空时保护除 `/health` 外的所有 HTTP 路径 |
 | `WANDERMIND_STATIC_DIR` | 空 | FastAPI 托管前端构建产物的目录 |
 | `WANDERMIND_EMBEDDING_DIMENSIONS` | 96 | 确定性向量维度；Postgres schema 当前为 96 |
-| `WANDERMIND_RUNTIME_ADAPTER` | `mock` | `mock` 或 `codex` |
+| `WANDERMIND_RUNTIME_ADAPTER` | `mock` | `mock`、`codex` 或 `openai` |
 | `WANDERMIND_CODEX_EXECUTABLE` | `codex` | Codex CLI 路径 |
 | `WANDERMIND_RUNTIME_CWD` | 当前目录 | Runtime 可见工作目录 |
+| `WANDERMIND_LLM_BASE_URL` | Agnes APIHub | OpenAI-compatible `/v1` 根地址 |
+| `WANDERMIND_LLM_API_KEY` | 空 | `openai` Runtime 必填 Secret |
+| `WANDERMIND_LLM_MODEL` | `agnes-2.5-flash` | Chat Completions 模型名 |
+| `WANDERMIND_LLM_TEMPERATURE` | 0.2 | 结构化输出温度，范围 0–2 |
+| `WANDERMIND_LLM_MAX_OUTPUT_TOKENS` | 2000 | 单次响应 token 上限，范围 128–32000 |
 | `WANDERMIND_RUNTIME_TIMEOUT_SECONDS` | 60 | 单次任务上限 |
 | `WANDERMIND_RUNTIME_MAX_RETRIES` | 2 | 可重试错误次数 |
 | `WANDERMIND_WONDER_THRESHOLD` | 0.58 | Surface 阈值 |
@@ -84,6 +89,23 @@ WANDERMIND_RUNTIME_CWD=/absolute/readable/path
 - 所有输出必须通过 JSON Schema 与 Pydantic
 
 `workspace-write` 在 Adapter 构造时默认关闭，即使 RuntimeTask 请求写权限也会被拒绝。
+
+### OpenAI-compatible / Agnes
+
+```dotenv
+WANDERMIND_RUNTIME_ADAPTER=openai
+WANDERMIND_LLM_BASE_URL=https://apihub.agnes-ai.com/v1
+WANDERMIND_LLM_API_KEY=<secret>
+WANDERMIND_LLM_MODEL=agnes-2.5-flash
+WANDERMIND_LLM_TEMPERATURE=0.2
+WANDERMIND_LLM_MAX_OUTPUT_TOKENS=2000
+```
+
+该适配器调用 `/chat/completions`，优先请求 JSON mode；供应商明确拒绝 `response_format` 时会自动移除该字段重试一次。输出仍须通过本地 JSON Schema 和 Pydantic 校验。401/403/404 不重试，429/5xx 可按 `WANDERMIND_RUNTIME_MAX_RETRIES` 重试；单次请求使用 `WANDERMIND_RUNTIME_TIMEOUT_SECONDS`。
+
+Evidence 只能返回 Context 中已有的非空 `source_ref`。出现未知引用、缺少引用或对抗性伪造引用时，服务端会清空支持/反证文本与引用，并把不确定性提高到至少 0.8。
+
+API key 不会写入 Runtime Session、usage 或日志。生产环境应使用平台 Secret；不要把真实值写入 `.env.example`、Compose 文件或 `render.yaml`。
 
 ## 阈值
 

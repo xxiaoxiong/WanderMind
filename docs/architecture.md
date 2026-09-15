@@ -65,13 +65,13 @@ sequenceDiagram
     participant C as Independent Critic
     A->>E: expand candidate with JSON schema
     A->>V: collect support/counter-evidence
-    Note over V: no source refs => evidence cleared
+    Note over V: unknown or missing source refs => evidence cleared
     A->>C: critique candidate independently
     C-->>A: pass / revise / reject
     A-->>A: merge result and confidence
 ```
 
-Explorer、Evidence、Critic 使用独立 Runtime Session，并在成功或失败后关闭。Evidence 没有 `source_refs` 时会清空支持/反证文本并提高不确定性；Critic 失败默认 reject。
+Explorer、Evidence、Critic 使用独立 Runtime Session，并在成功或失败后关闭。候选为中文时 Runtime 输出中文可读字段。Evidence 引用必须来自输入 Context 的精确 `source_ref` 白名单；缺少或出现未知引用时会清空支持/反证文本并提高不确定性。Critic 失败默认 reject。
 
 ## 数据与持久化
 
@@ -99,7 +99,8 @@ PostgreSQL 使用 pgvector；SQLite 自动退化为 JSON 向量，便于测试�
 - 文本长度、控制字符和异常重复字符在边界校验。
 - Nginx 与 API 双层请求大小限制。
 - Runtime 默认 read-only、network disabled、never approval。
-- Runtime JSON 先由协议 Schema 约束，再由 Pydantic 验证。
+- Runtime JSON 先由协议 Schema 约束，再由本地 JSON Schema 与 Pydantic 验证。
+- OpenAI-compatible API key 仅保存在 SecretStr 与请求 Authorization header，不进入 metadata、usage 或日志。
 - 日志不输出知识正文；结构化请求日志含 request id。
 - Evidence 不得在缺少引用时生成“看似有来源”的文本。
 
