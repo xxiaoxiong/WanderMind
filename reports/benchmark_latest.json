@@ -1,0 +1,292 @@
+{
+  "dataset_size": 120,
+  "case_count": 12,
+  "metrics": {
+    "wonder_hit_proxy": 1.0,
+    "high_value_proxy": 0.8333333333333334,
+    "obvious_rate": 0.0,
+    "randomness_rate": 0.0,
+    "redundancy_rate": 0.21774640086076255,
+    "duplicate_rate": 0.0,
+    "cross_domain_yield": 1.0,
+    "average_candidates": 1.0,
+    "runtime_calls": 0
+  },
+  "cases": [
+    {
+      "id": "backpressure-pheromone",
+      "label": "interesting",
+      "session_id": "79debf3d-7d18-4e35-aa19-8080b10984dc",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.7219152033880102,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "67d273ab-2020-49bc-a208-b356ca498132",
+        "21da018e-c904-40bc-a320-d92b32365150"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "immune-incident-memory",
+      "label": "interesting",
+      "session_id": "63353e83-2171-48df-b667-62592346c9cb",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.6500696218427612,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "52c608a0-d360-47ab-b567-f3c6e2ff0ef1",
+        "c9a7db8d-2ec0-4428-8901-f946d99c2717"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "syncopation-attention",
+      "label": "interesting",
+      "session_id": "6af6041c-27a5-48f4-abe3-abcb30ae3715",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.6986097095552836,
+      "operators": [
+        "conceptual_blend"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "791ea95b-6c9e-4f74-b7a3-2d66f5907ef2",
+        "22c675e0-08e3-462c-b228-faaddd3f64b2"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "wetlands-circuit-breakers",
+      "label": "interesting",
+      "session_id": "9cdefe08-c8ec-4481-9fe1-bae9779efcce",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.6749398856632683,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "8de41e6f-7c4c-4845-b67d-1016ad3945f0",
+        "7bfd83bd-b89d-4e7b-93cd-f6f1c7950530"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "joinery-governance",
+      "label": "interesting",
+      "session_id": "b188234c-5cc5-4907-8251-a65e1bf6de95",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.6318875417435801,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "75b4c025-6a3d-4002-89eb-a95f9e40500e",
+        "e7ba0858-7fd0-4ac8-b862-92ba6b895d37"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "spacing-urban",
+      "label": "interesting",
+      "session_id": "375ea176-7fbf-4a7c-b8da-5b466be70472",
+      "status": "completed",
+      "stop_reason": "high_value_found",
+      "candidate_count": 1,
+      "wonder_count": 1,
+      "top_score": 0.6655929046491604,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "3202b13f-6611-4a19-83d8-af1bf26ca954",
+        "c79dc06e-67ca-48e3-bce8-381d79262096"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "feedback-feedback",
+      "label": "obvious",
+      "session_id": "2df971e0-cde1-48f6-a448-5a2f017c1478",
+      "status": "stopped",
+      "stop_reason": "candidate_convergence",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.4980375772850658,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "5ddee942-8a8e-422d-b3c6-327d278ce4a7",
+        "ec2ea72d-f70e-4c69-9781-9e05e74d01a3"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "networks-networks",
+      "label": "obvious",
+      "session_id": "a84263ba-f7a3-41f4-8827-3ed64c2e104d",
+      "status": "stopped",
+      "stop_reason": "candidate_convergence",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.49869555654419095,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "cd47b12e-96a6-4517-b8e8-de8c40fd7429",
+        "d764a3a1-5a15-410f-9530-3361dfc34aa9"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "random-color-consensus",
+      "label": "nonsense",
+      "session_id": "0f18a87b-0f7c-4033-97f8-251562ad7a0c",
+      "status": "stopped",
+      "stop_reason": "arbitrariness_guard",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.5483838811060795,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "1898e875-f4d2-427a-a92c-8c582503c8aa"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "tempo-tax-weather",
+      "label": "nonsense",
+      "session_id": "0d6eddff-a295-4831-bd85-f3460d0ae041",
+      "status": "stopped",
+      "stop_reason": "hallucination_guard",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.4842866326391443,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "b3ec53ca-04f3-4afd-b184-e1ee0b1d1c11",
+        "92866a38-72d5-41e5-beeb-13a6abab9237"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "duplicate-backpressure",
+      "label": "duplicate",
+      "session_id": "73969825-1a8f-4b0a-8be9-3c066c769598",
+      "status": "stopped",
+      "stop_reason": "candidate_convergence",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.5989305373070822,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "67d273ab-2020-49bc-a208-b356ca498132",
+        "a854dbba-e5e6-48a9-b826-f17727f6b1ac"
+      ],
+      "patch_count": 218
+    },
+    {
+      "id": "duplicate-spacing",
+      "label": "duplicate",
+      "session_id": "d0287974-f8e7-491e-bc1d-dd0caa766fc0",
+      "status": "stopped",
+      "stop_reason": "candidate_convergence",
+      "candidate_count": 1,
+      "wonder_count": 0,
+      "top_score": 0.4164367617535416,
+      "operators": [
+        "abstraction"
+      ],
+      "wander_path": [
+        "398dd97a-8a44-4f17-a7c7-4bf5ef461af3",
+        "35e3fb4d-a829-4143-bd2f-1f58e5233763",
+        "a33466d0-2bad-404d-a924-4fd9153bf511",
+        "ece11ede-b6dd-4254-82d2-54183db7f7e3",
+        "27effe04-6e07-488c-993a-ec4bebd34c9a",
+        "3202b13f-6611-4a19-83d8-af1bf26ca954",
+        "a288c3d9-6b2a-498b-8958-d6ecd97e2cf6"
+      ],
+      "patch_count": 218
+    }
+  ]
+}

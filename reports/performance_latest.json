@@ -1,0 +1,11 @@
+{
+  "knowledge_count": 1000,
+  "session_count": 100,
+  "completed_sessions": 5,
+  "surfaced_wonders": 5,
+  "unique_wonders": 5,
+  "p50_seconds": 0.5012415500023053,
+  "p95_seconds": 0.514889400001266,
+  "mean_seconds": 0.49597764800011646,
+  "peak_memory_mb": 6.105452537536621
+}

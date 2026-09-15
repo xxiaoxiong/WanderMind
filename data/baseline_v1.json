@@ -1,0 +1,9 @@
+{
+  "wonder_hit_proxy": 0.45,
+  "high_value_proxy": 0.25,
+  "obvious_rate": 0.1,
+  "randomness_rate": 0.1,
+  "redundancy_rate": 0.35,
+  "duplicate_rate": 0.1,
+  "cross_domain_yield": 0.45
+}

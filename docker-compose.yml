@@ -1,0 +1,53 @@
+name: wandermind
+
+services:
+  database:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: wandermind
+      POSTGRES_USER: wandermind
+      POSTGRES_PASSWORD: wandermind
+    volumes:
+      - wandermind-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wandermind -d wandermind"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      WANDERMIND_ENV: prod
+      WANDERMIND_DATABASE_URL: postgresql+asyncpg://wandermind:wandermind@database:5432/wandermind
+      WANDERMIND_CORS_ORIGINS: '["http://localhost:8080"]'
+      WANDERMIND_ACCESS_USERNAME: ${WANDERMIND_ACCESS_USERNAME:-wandermind}
+      WANDERMIND_ACCESS_PASSWORD: ${WANDERMIND_ACCESS_PASSWORD:-}
+      WANDERMIND_RUNTIME_ADAPTER: mock
+      WANDERMIND_AUTO_CREATE_SCHEMA: "false"
+      WANDERMIND_ENABLE_SCHEDULER: "true"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+volumes:
+  wandermind-postgres:

@@ -1,0 +1,120 @@
+[
+  {
+    "id": "backpressure-pheromone",
+    "seed": "Could software backpressure resemble fading pheromone trails in ant-like ecological coordination?",
+    "label": "interesting",
+    "domains": [
+      "Distributed Systems",
+      "Ecology"
+    ],
+    "rationale": "Both regulate distributed demand through local signals that weaken or intensify."
+  },
+  {
+    "id": "immune-incident-memory",
+    "seed": "How might immune memory inform organizational incident review without turning every anomaly into a crisis?",
+    "label": "interesting",
+    "domains": [
+      "Biology",
+      "Organizations"
+    ],
+    "rationale": "Both systems preserve selective memory of failure while avoiding constant maximal response."
+  },
+  {
+    "id": "syncopation-attention",
+    "seed": "Can musical syncopation explain why curiosity gaps capture attention better than continuous novelty?",
+    "label": "interesting",
+    "domains": [
+      "Music",
+      "Psychology"
+    ],
+    "rationale": "Expectation violation may transfer as a timing-based attention mechanism."
+  },
+  {
+    "id": "wetlands-circuit-breakers",
+    "seed": "What can wetland buffers teach circuit-breaker design about absorbing shocks before hard failure?",
+    "label": "interesting",
+    "domains": [
+      "Climate Adaptation",
+      "Distributed Systems"
+    ],
+    "rationale": "Both absorb bursts and isolate downstream systems from cascading stress."
+  },
+  {
+    "id": "joinery-governance",
+    "seed": "Could visible joinery be a model for transparent governance interfaces?",
+    "label": "interesting",
+    "domains": [
+      "Craft",
+      "Governance"
+    ],
+    "rationale": "Visible constraints and inspectable connections can increase trust and repairability."
+  },
+  {
+    "id": "spacing-urban",
+    "seed": "Does spaced repetition have an urban analogue in how recurring public spaces reinforce neighborhood memory?",
+    "label": "interesting",
+    "domains": [
+      "Learning Science",
+      "Urban Design"
+    ],
+    "rationale": "Repeated encounters separated by context may strengthen durable shared representations."
+  },
+  {
+    "id": "feedback-feedback",
+    "seed": "Feedback loops are similar to feedback loops. Explain the similarity.",
+    "label": "obvious",
+    "domains": [
+      "Biology",
+      "Economics"
+    ],
+    "rationale": "Deliberately tautological baseline for obviousness."
+  },
+  {
+    "id": "networks-networks",
+    "seed": "Compare organizational networks with computer networks at the most generic level.",
+    "label": "obvious",
+    "domains": [
+      "Organizations",
+      "Distributed Systems"
+    ],
+    "rationale": "Likely to produce generic, low-specificity analogies."
+  },
+  {
+    "id": "random-color-consensus",
+    "seed": "Why is the color purple secretly a consensus algorithm for spoons?",
+    "label": "nonsense",
+    "domains": [
+      "Distributed Systems",
+      "Craft"
+    ],
+    "rationale": "Deliberately arbitrary pairing for randomness detection."
+  },
+  {
+    "id": "tempo-tax-weather",
+    "seed": "Prove that tempo modulation directly causes tax policy during rain.",
+    "label": "nonsense",
+    "domains": [
+      "Music",
+      "Governance"
+    ],
+    "rationale": "Unsupported causal demand across unrelated domains."
+  },
+  {
+    "id": "duplicate-backpressure",
+    "seed": "How does backpressure control overloaded software queues?",
+    "label": "duplicate",
+    "domains": [
+      "Distributed Systems"
+    ],
+    "rationale": "Direct restatement of an existing knowledge fragment."
+  },
+  {
+    "id": "duplicate-spacing",
+    "seed": "Why does spaced repetition improve durable learning?",
+    "label": "duplicate",
+    "domains": [
+      "Learning Science"
+    ],
+    "rationale": "Direct restatement of an existing knowledge fragment."
+  }
+]
