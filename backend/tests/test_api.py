@@ -83,6 +83,30 @@ async def test_health_and_error_contracts(
 
 
 @pytest.mark.asyncio
+async def test_wander_rejects_insufficient_knowledge_before_creating_work(
+    api_client: tuple[AsyncClient, ApplicationContainer],
+) -> None:
+    client, container = api_client
+
+    response = await client.post(
+        "/api/v1/wander",
+        json={"content": "How might these ideas connect?"},
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {
+        "error": {
+            "code": "insufficient_knowledge",
+            "message": "at least two knowledge items are required to run a wander",
+            "details": {"available_count": 0, "required_count": 2},
+            "retryable": False,
+        }
+    }
+    assert await container.repositories.seeds.list(offset=0, limit=10) == []
+    assert await container.repositories.sessions.list(offset=0, limit=10) == []
+
+
+@pytest.mark.asyncio
 async def test_optional_basic_access_protects_everything_except_health() -> None:
     settings = Settings(
         env="test",

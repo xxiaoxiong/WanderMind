@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { api, ApiError, streamWanderTrace } from "../api";
 import { Eyebrow, LoadingOrbit, Notice, StatusPill } from "../components/Primitives";
 import { TraceTimeline } from "../components/TraceTimeline";
 import type { WanderRunResponse, WanderStep } from "../types";
 import { usePreferences } from "../preferences";
+
+const MINIMUM_KNOWLEDGE_ITEMS = 2;
 
 export function WanderPage({ seedId }: { seedId: string | null }) {
   const { t } = usePreferences();
@@ -13,9 +15,22 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
   const [steps, setSteps] = useState<WanderStep[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [knowledgeCount, setKnowledgeCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    void api.listKnowledge()
+      .then((response) => setKnowledgeCount(response.items.length))
+      .catch(() => setError(t("wander.knowledgeLoadError")));
+  }, [t]);
+
+  const missingKnowledge = Math.max(
+    0,
+    MINIMUM_KNOWLEDGE_ITEMS - (knowledgeCount ?? 0),
+  );
+  const knowledgeReady = knowledgeCount !== null && missingKnowledge === 0;
 
   const run = async () => {
-    if (!seedId && !prompt.trim()) return;
+    if (!knowledgeReady || (!seedId && !prompt.trim())) return;
     setBusy(true);
     setError(null);
     setResult(null);
@@ -27,7 +42,14 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
         setSteps((current) => current.some((item) => item.id === step.id) ? current : [...current, step]);
       });
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : t("wander.error"));
+      if (caught instanceof ApiError && caught.code === "insufficient_knowledge") {
+        setError(t("wander.knowledgeChanged"));
+        void api.listKnowledge()
+          .then((response) => setKnowledgeCount(response.items.length))
+          .catch(() => setKnowledgeCount(null));
+      } else {
+        setError(caught instanceof ApiError ? caught.message : t("wander.error"));
+      }
     } finally {
       setBusy(false);
     }
@@ -45,6 +67,12 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
       </header>
 
       {error ? <Notice tone="error">{error}</Notice> : null}
+      {knowledgeCount !== null && !knowledgeReady ? (
+        <Notice>
+          {t("wander.knowledgeRequired", { count: missingKnowledge })}{" "}
+          <a href="#/inbox">{t("wander.addKnowledge")}</a>
+        </Notice>
+      ) : null}
       <section className="wander-console">
         <div className="wander-input-row">
           <input
@@ -54,7 +82,7 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
-          <button className="button button-primary" disabled={busy || (!seedId && !prompt.trim())} onClick={() => void run()}>
+          <button className="button button-primary" disabled={busy || !knowledgeReady || (!seedId && !prompt.trim())} onClick={() => void run()}>
             {busy ? t("wander.running") : t("wander.run")}
           </button>
         </div>

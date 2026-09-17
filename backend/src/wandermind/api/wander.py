@@ -13,17 +13,19 @@ from wandermind.api.dependencies import get_container
 from wandermind.api.schemas import WanderCreate, WanderRunResponse
 from wandermind.application.container import ApplicationContainer
 from wandermind.cognitive.seed_selector import SeedSelector
-from wandermind.infrastructure.errors import NotFoundError
+from wandermind.infrastructure.errors import InsufficientKnowledgeError, NotFoundError
 from wandermind.infrastructure.observability import record_wander_run
 from wandermind.infrastructure.security import validate_safe_text
 from wandermind.models import CognitiveState, Seed, SeedSource, SessionStatus, WanderSession
 
 router = APIRouter(prefix="/wander", tags=["wander"])
 Container = Annotated[ApplicationContainer, Depends(get_container)]
+MINIMUM_KNOWLEDGE_ITEMS = 2
 
 
 @router.post("", response_model=WanderRunResponse)
 async def run_wander(payload: WanderCreate, container: Container) -> WanderRunResponse:
+    await _require_sufficient_knowledge(container)
     seed = await _resolve_seed(payload, container)
     result = await container.wander_engine.run(seed, payload.budget)
     record_wander_run(result.session, result.candidates, result.wonders)
@@ -104,6 +106,21 @@ async def delete_wander_session(session_id: UUID, container: Container) -> Respo
     if not await container.deletion.delete_session(session_id):
         raise NotFoundError("wander session not found", details={"id": str(session_id)})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+async def _require_sufficient_knowledge(container: ApplicationContainer) -> None:
+    items = await container.repositories.knowledge.list(
+        offset=0,
+        limit=MINIMUM_KNOWLEDGE_ITEMS,
+    )
+    if len(items) < MINIMUM_KNOWLEDGE_ITEMS:
+        raise InsufficientKnowledgeError(
+            "at least two knowledge items are required to run a wander",
+            details={
+                "available_count": len(items),
+                "required_count": MINIMUM_KNOWLEDGE_ITEMS,
+            },
+        )
 
 
 async def _resolve_seed(payload: WanderCreate, container: ApplicationContainer) -> Seed:

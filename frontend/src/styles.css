@@ -154,6 +154,7 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 .notice-info { color: var(--cyan); border-color: rgba(108,229,213,.25); background: rgba(108,229,213,.06); }
 .notice-success { color: var(--lime); border-color: rgba(200,241,105,.25); background: rgba(200,241,105,.06); }
 .notice-error { color: var(--red); border-color: rgba(255,136,120,.25); background: rgba(255,136,120,.06); }
+.notice a { margin-left: 6px; color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 .thought-composer { position: relative; margin-bottom: 28px; border: 1px solid rgba(95,127,25,.2); border-radius: 12px; background: var(--composer); box-shadow: 0 24px 70px rgba(var(--shadow-rgb), .16); overflow: hidden; }
 .thought-composer::before { content: ""; position: absolute; top: 0; left: 0; width: 95px; height: 1px; background: var(--lime); }

@@ -31,9 +31,26 @@ const wonder = {
   created_at: "2026-09-14T00:00:00Z",
 };
 
+const knowledgeItems = [
+  {
+    id: "item-1",
+    title: "Ant colonies",
+    summary: "Local pheromone feedback coordinates work.",
+    type: "note",
+    created_at: "2026-09-14T00:00:00Z",
+  },
+  {
+    id: "item-2",
+    title: "Distributed queues",
+    summary: "Backpressure stabilizes overloaded workers.",
+    type: "note",
+    created_at: "2026-09-14T00:00:00Z",
+  },
+];
+
 test("captures a seed and surfaces a structured wonder", async ({ page }) => {
   await page.route("**/api/v1/knowledge?limit=100", async (route) => {
-    await route.fulfill({ json: { items: [], offset: 0, limit: 100 } });
+    await route.fulfill({ json: { items: knowledgeItems, offset: 0, limit: 100 } });
   });
   await page.route("**/api/v1/seeds", async (route) => {
     await route.fulfill({ status: 201, json: { id: "seed-1", content: "How do systems avoid overload?" } });
@@ -130,6 +147,31 @@ test("captures a seed and surfaces a structured wonder", async ({ page }) => {
   await expect(page.getByText("Explorer, evidence, and critic passes completed.")).toBeVisible();
   await page.getByRole("button", { name: "Save this wonder" }).click();
   await expect(page.getByText("Feedback saved.")).toBeVisible();
+});
+
+test("blocks wandering until the knowledge field has two fragments", async ({ page }) => {
+  let wanderRequests = 0;
+  await page.route("**/api/v1/knowledge?limit=100", async (route) => {
+    await route.fulfill({ json: { items: [], offset: 0, limit: 100 } });
+  });
+  await page.route("**/api/v1/wander", async (route) => {
+    wanderRequests += 1;
+    await route.fulfill({ status: 500 });
+  });
+
+  await page.goto("/#/wander?seed=seed-1");
+
+  await expect(
+    page.getByText(
+      "Wandering needs at least two knowledge fragments. Add 2 more to continue.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Add knowledge" })).toHaveAttribute(
+    "href",
+    "#/inbox",
+  );
+  await expect(page.getByRole("button", { name: "Run wander" })).toBeDisabled();
+  expect(wanderRequests).toBe(0);
 });
 
 test("lists curated wonders", async ({ page }) => {

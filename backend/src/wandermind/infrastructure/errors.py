@@ -24,6 +24,11 @@ class ConflictError(AppError):
     status_code = 409
 
 
+class InsufficientKnowledgeError(AppError):
+    code = "insufficient_knowledge"
+    status_code = 409
+
+
 class UnsafeInputError(AppError):
     code = "unsafe_input"
     status_code = 422
