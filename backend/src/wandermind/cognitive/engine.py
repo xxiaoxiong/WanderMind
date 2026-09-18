@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Any
 from uuid import UUID
 
@@ -77,6 +78,7 @@ class WanderEngine:
         visited_ids: set[UUID] = set()
         visited_path: list[UUID] = []
         started_at = datetime.now(UTC)
+        started_clock = perf_counter()
         session.started_at = started_at
         session.status = SessionStatus.RUNNING
         try:
@@ -136,8 +138,19 @@ class WanderEngine:
             quality_guards: dict[str, int] = {}
             termination_reason = "search_space_exhausted"
             for left_result, right_result in self._candidate_pairs(ranked, pinned_pair):
-                if self._elapsed(started_at) >= session.budget.time_budget_seconds:
+                if self._elapsed(started_clock) >= session.budget.time_budget_seconds:
                     termination_reason = "time_budget_exhausted"
+                    break
+                required_runtime_calls = int(self.candidate_synthesizer is not None) + int(
+                    self.candidate_reviewer is not None
+                )
+                if (
+                    required_runtime_calls > 0
+                    and runtime_calls_used > 0
+                    and session.budget.max_runtime_calls - runtime_calls_used
+                    < required_runtime_calls
+                ):
+                    termination_reason = "runtime_budget_exhausted"
                     break
                 if len(candidates) >= session.budget.max_candidates:
                     termination_reason = "candidate_budget_exhausted"
@@ -332,33 +345,35 @@ class WanderEngine:
                 if (
                     decision in {ThresholdDecision.DEEP_EXPLORE, ThresholdDecision.SURFACE}
                     and self.candidate_reviewer is not None
-                    and remaining_runtime_calls >= 2
+                    and remaining_runtime_calls >= 1
                 ):
                     self._transition(
                         session,
                         machine,
                         CognitiveState.EXPLORE,
-                        "runtime_evidence_validation",
-                        "the configured Agent Runtime checked support and counter-evidence",
+                        "runtime_candidate_review",
+                        "an independent Agent Runtime reviewer checked evidence and weaknesses",
                         candidate_ids=[candidate.id],
                     )
                     review = await self.candidate_reviewer.review(
                         candidate,
                         [left, right],
-                        max_runtime_calls=2,
+                        max_runtime_calls=1,
                     )
                     runtime_calls_used += review.runtime_calls
                     session.metadata["runtime_calls_used"] = runtime_calls_used
                     candidate.status = CandidateStatus.EXPLORED
                     candidate.metadata["runtime_review"] = review.model_dump(mode="json")
-                    if review.verdict != "pass":
+                    if review.verdict == "reject":
                         candidate.status = CandidateStatus.REJECTED
+                    elif review.verdict == "revise":
+                        candidate.status = CandidateStatus.FILTERED
                     await self.repositories.candidates.update(candidate)
                     self._transition(
                         session,
                         machine,
                         CognitiveState.CRITIQUE,
-                        "runtime_independent_critique",
+                        "runtime_review_completed",
                         f"Agent Runtime critic verdict: {review.verdict}",
                         candidate_ids=[candidate.id],
                         metadata={
@@ -380,7 +395,7 @@ class WanderEngine:
                         session,
                         CognitiveState.SCORE,
                         "runtime_review_skipped",
-                        "runtime budget could not fund evidence validation and an independent critic",
+                        "runtime budget could not fund an independent candidate review",
                         candidate_ids=[candidate.id],
                     )
                 review_passed = (
@@ -389,10 +404,19 @@ class WanderEngine:
                         review is not None
                         and review.verdict == "pass"
                         and review.factual_risk < 0.75
+                        and review.uncertainty < 0.8
                     )
                 )
+                review_assisted_surface = (
+                    decision is ThresholdDecision.DEEP_EXPLORE
+                    and self.candidate_reviewer is not None
+                    and review is not None
+                    and review_passed
+                )
                 if (
-                    decision is ThresholdDecision.SURFACE
+                    (decision is ThresholdDecision.SURFACE or review_assisted_surface)
+                    and scores.redundancy < 0.85
+                    and scores.arbitrariness < 0.80
                     and scores.hallucination_risk < 0.75
                     and review_passed
                 ):
@@ -401,7 +425,11 @@ class WanderEngine:
                         machine,
                         CognitiveState.PERSIST,
                         "promote_candidate",
-                        "candidate passed the configured surface threshold",
+                        (
+                            "candidate passed independent review after deep exploration"
+                            if review_assisted_surface
+                            else "candidate passed the configured surface threshold"
+                        ),
                         candidate_ids=[candidate.id],
                     )
                     wonder = Wonder(
@@ -416,8 +444,9 @@ class WanderEngine:
                             else candidate.explanation
                         ),
                         why_interesting=(
-                            "It links knowledge at a non-obvious but explainable semantic distance "
-                            "and opens follow-up questions."
+                            "它在保持不确定性的同时建立了可解释、可验证的跨领域连接。"
+                            if any("\u4e00" <= character <= "\u9fff" for character in candidate.statement)
+                            else "It forms an explainable, testable cross-domain connection while preserving uncertainty."
                         ),
                         source_items=candidate.source_items,
                         connection_path=candidate.wander_path,
@@ -430,6 +459,9 @@ class WanderEngine:
                         metadata={
                             "score_explanation": score_explanation.model_dump(mode="json"),
                             "runtime_review": review.model_dump(mode="json") if review else None,
+                            "promotion_basis": (
+                                "runtime_review" if review_assisted_surface else "score_threshold"
+                            ),
                         },
                     )
                     await self.repositories.wonders.create(wonder)
@@ -574,8 +606,8 @@ class WanderEngine:
 
         return LEGAL_TRANSITIONS[machine.state]
 
-    def _elapsed(self, started_at: datetime) -> float:
-        return (datetime.now(UTC) - started_at).total_seconds()
+    def _elapsed(self, started_clock: float) -> float:
+        return perf_counter() - started_clock
 
     def _pinned_pair(
         self,

@@ -45,7 +45,7 @@ stateDiagram-v2
 
 ## 认知流水线
 
-主漫游不会把本地算子结果直接冒充 Agent 结果。算子先生成可解释草稿，`CandidateSynthesizer` Protocol 再通过配置的 Runtime 生成有来源约束的候选；达到深探阈值时，`CandidateReviewer` 通过独立 Evidence 与 Critic Session 校验。Cognitive Core 只依赖 Protocol，具体 Runtime 编排位于 Application 层。Runtime 失败会保留确定性草稿并记录降级原因，不会伪造成功轨迹。
+主漫游不会把本地算子结果直接冒充 Agent 结果。算子先生成可解释草稿，`CandidateSynthesizer` Protocol 再通过配置的 Runtime 生成有来源约束的候选；达到深探阈值时，`CandidateReviewer` 用一个独立 Session 联合完成证据检查与反向批判。Cognitive Core 只依赖 Protocol，具体 Runtime 编排位于 Application 层。Runtime 失败会保留确定性草稿并记录降级原因，不会伪造成功轨迹。
 
 质量 Guard 作用于单个 Candidate；引擎继续尝试未访问的唯一知识对，直到候选/步数/时间/Runtime 预算耗尽。除知识不足、人工停止和执行失败外，正常搜索耗尽以 `completed` 结束。
 
@@ -75,7 +75,7 @@ sequenceDiagram
     A-->>A: merge result and confidence
 ```
 
-Candidate Synthesis、Explorer、Evidence、Critic 使用独立 Runtime Session，并在成功或失败后关闭。候选为中文时 Runtime 输出中文可读字段。Evidence 引用必须来自输入 Context 的精确 `source_ref` 白名单；缺少或出现未知引用时会清空支持/反证文本并提高不确定性。Critic 失败默认 reject。
+主 Wander 的 Candidate Synthesis 与 Candidate Review 使用独立 Runtime Session；详情页的 Explorer、Evidence、Critic 仍各用独立 Session，全部在成功或失败后关闭。候选为中文时 Runtime 输出中文可读字段。Review/Evidence 引用必须来自输入 Context 的精确引用白名单；出现未知引用时会清空支持/反证文本、提高不确定性并禁止通过。Critic 失败默认 reject。
 
 ## 数据与持久化
 

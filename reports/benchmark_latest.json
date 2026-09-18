@@ -3,20 +3,20 @@
   "case_count": 12,
   "metrics": {
     "wonder_hit_proxy": 1.0,
-    "high_value_proxy": 0.6666666666666666,
+    "high_value_proxy": 0.8333333333333334,
     "obvious_rate": 0.0,
     "randomness_rate": 0.0,
-    "redundancy_rate": 0.29907407407407405,
+    "redundancy_rate": 0.11196715583508034,
     "duplicate_rate": 0.0,
     "cross_domain_yield": 1.0,
-    "average_candidates": 3.0,
+    "average_candidates": 1.5,
     "runtime_calls": 36
   },
   "cases": [
     {
       "id": "backpressure-pheromone",
       "label": "interesting",
-      "session_id": "09c3f96a-a7e3-42e3-8e9b-723bc2f4408a",
+      "session_id": "eb52e2d6-dd65-4891-bbe0-9a3c960977e5",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
@@ -26,313 +26,277 @@
         "abstraction"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "a393d476-731e-44b5-979a-5b07e095b0f9",
-        "7ed51a1a-f26a-4085-90af-6da8d0563f02"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "4e2f9158-b0fe-483e-b58f-e3318bc4dd72",
+        "de34e722-f180-4b6b-90f8-6f4922f11fd8"
       ],
       "patch_count": 218
     },
     {
       "id": "immune-incident-memory",
       "label": "interesting",
-      "session_id": "8435f62c-33b3-4ea4-91dc-9c74c0240f03",
+      "session_id": "413877f7-5f3c-43a5-b4bb-92a1981d7129",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.65470243070057,
+      "top_score": 0.6998326193798152,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "de486475-326e-4705-8f6c-d0db51f6bca0",
-        "ab927580-634c-4c6b-8297-e60984be2156"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "74e297d2-1550-4470-9529-ef6109598d3e",
+        "1dff7cd2-243d-4d4b-b40e-a718bd8230c3"
       ],
       "patch_count": 218
     },
     {
       "id": "syncopation-attention",
       "label": "interesting",
-      "session_id": "501f9393-9392-4c61-8231-463dd410fa98",
+      "session_id": "eea7a839-777d-44dd-b1b3-eaec1d6ae30c",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.5990375154274887,
+      "top_score": 0.6441677041067339,
       "operators": [
         "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "1d4ed84b-5dc0-4e91-9a45-a9f69c69f96e",
-        "ace508e3-4961-4ce4-8dbc-6c9fc98f2616"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "9f825ef8-d919-4660-bcc7-9e454b95cc74",
+        "06e43312-2a83-438e-b899-60e1f4b94729"
       ],
       "patch_count": 218
     },
     {
       "id": "wetlands-circuit-breakers",
       "label": "interesting",
-      "session_id": "030c9bce-5a6d-425b-9d12-7557856faca4",
+      "session_id": "7881d60a-c6eb-4902-8592-62546863f6e1",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6845513099056927,
+      "top_score": 0.7296814985849379,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "56ed9439-b9ea-4aeb-949e-c993e9750a3f",
-        "c259a43a-7463-431b-af92-5604520280d0"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "3388f7c3-1b28-4ca7-b97e-5c7a05618715",
+        "2d571ad7-913f-47c4-9433-c6f4027ab697"
       ],
       "patch_count": 218
     },
     {
       "id": "joinery-governance",
       "label": "interesting",
-      "session_id": "852411ab-689d-4163-a237-b0af3fae51c4",
+      "session_id": "b1e10ab2-6a2f-4535-92ae-ce384bc226ff",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6442779168290209,
+      "top_score": 0.6894081055082661,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "7f9f7fb6-cf0d-4a73-84e2-89553155bd76",
-        "3fb21019-a465-4d83-9c7a-f819099f52a0"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "9552d8c4-6866-4849-8734-9d240ff07a5f",
+        "b6c95864-edbd-4092-94c1-c79996f650aa"
       ],
       "patch_count": 218
     },
     {
       "id": "spacing-urban",
       "label": "interesting",
-      "session_id": "0015b3e3-3304-41c0-ba80-823d7838d14c",
+      "session_id": "daf80712-32c9-4e66-98c2-5664590eb522",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6846632368611032,
+      "top_score": 0.7297934255403484,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "e72baf1d-d88f-4aea-857a-a16af968570f",
-        "9cfdef8c-ed8b-442a-ae73-425cb7144418"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "d92f97d2-e1fe-4284-b26f-9da156fce9bd",
+        "d24d41d5-5d3d-40fd-907f-7bd11d8c5dac"
       ],
       "patch_count": 218
     },
     {
       "id": "feedback-feedback",
       "label": "obvious",
-      "session_id": "143bad16-da4d-429c-9940-b98bf18c9611",
+      "session_id": "e4338f78-4a3b-4882-a411-a1e2dee205d5",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.570150761161011,
+      "top_score": 0.5365100840236103,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "9b34d2fb-dc1e-4945-beb1-96783d70ca86",
-        "e513ae4d-afac-48ce-a708-6cf5e391906b",
-        "fda19771-2d26-4185-a3e7-a5a0e0c1d855",
-        "593c6252-bcab-4592-98fd-c01181cbc1c5",
-        "f7df9401-2984-440b-9bb9-b5b0d99a9214"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "7820deaa-1d26-4e8f-ada2-1f22d6c5b03d",
+        "d16bd7ff-9c2d-4ee5-9289-9016d78be482",
+        "2c091b8b-aa70-45cc-a61d-dc907cb56c39"
       ],
       "patch_count": 218
     },
     {
       "id": "networks-networks",
       "label": "obvious",
-      "session_id": "821087e1-1b5f-45cb-b7ca-f348bd45598b",
+      "session_id": "dcdec5b6-8c61-4c9f-907b-547c9a7cc1f3",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.5621622362536389,
+      "top_score": 0.535952681208964,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "69bbd4fa-2c7c-403d-9c96-f471692e7b77",
-        "fda19771-2d26-4185-a3e7-a5a0e0c1d855",
-        "9cfdef8c-ed8b-442a-ae73-425cb7144418",
-        "f7df9401-2984-440b-9bb9-b5b0d99a9214",
-        "8fa5e83f-6a47-44af-9f85-7ae4e07a2ae5",
-        "5bfc863c-65e7-4400-8bd7-4f089dcb297b",
-        "eeddca2d-0ec5-4731-a7f2-91a71b8c20a2"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "ee0f1932-f14b-4a8d-8500-8c37ef1ad66d",
+        "2c091b8b-aa70-45cc-a61d-dc907cb56c39",
+        "d24d41d5-5d3d-40fd-907f-7bd11d8c5dac"
       ],
       "patch_count": 218
     },
     {
       "id": "random-color-consensus",
       "label": "nonsense",
-      "session_id": "9de1d267-ec03-4c0a-b743-b764d5aeb658",
+      "session_id": "327c2c2b-d76b-466a-b44a-afe455d350ed",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.6424285250664034,
+      "top_score": 0.6129212126424677,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "b6978b1c-1ea2-4dfc-94d1-2c50a80a18e8",
-        "e513ae4d-afac-48ce-a708-6cf5e391906b",
-        "0c191f4c-480b-44be-92ad-1ac31c13928d",
-        "175f4c96-eae4-4bb4-a052-98d3c6ca1666",
-        "d89c948b-0564-4dd3-9b25-b03b2acd9354"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "365d5990-1e58-480a-aea5-70dfaff321a5",
+        "d16bd7ff-9c2d-4ee5-9289-9016d78be482"
       ],
       "patch_count": 218
     },
     {
       "id": "tempo-tax-weather",
       "label": "nonsense",
-      "session_id": "4f20f8dd-82dc-4310-b2e0-2bb88ce7956c",
+      "session_id": "35d6e1f2-7d2b-493a-84b9-ef96d0d3af7d",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.6290482769055467,
+      "top_score": 0.5512577497297598,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "7b43292f-672b-4052-936e-3943d32fe6ab",
-        "5a07a3c3-ea3f-4479-b97d-d32bd75bda71",
-        "0cce4c22-0b94-4e40-91ed-f4b561b99705",
-        "b10dfee8-932d-4f32-858e-5ca94b85b48b",
-        "eb5e627b-5181-447c-9ec4-dae670821fee",
-        "c259a43a-7463-431b-af92-5604520280d0"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "7fa20154-7042-4c37-9960-4758fced8d69",
+        "11045430-686c-4ac7-9484-9169180f99b4",
+        "47be053b-2a4d-497c-888f-719094d50be3"
       ],
       "patch_count": 218
     },
     {
       "id": "duplicate-backpressure",
       "label": "duplicate",
-      "session_id": "549e6c43-a759-4c9e-9043-4f7b7e130834",
+      "session_id": "feef0a9a-1e16-4bb0-9192-80c37b9f2b0a",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.6629561604022035,
+      "top_score": 0.6164284875940037,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "a393d476-731e-44b5-979a-5b07e095b0f9",
-        "b10dfee8-932d-4f32-858e-5ca94b85b48b",
-        "72e9c234-cf4f-480f-a024-0ecffdf6ba43",
-        "0cce4c22-0b94-4e40-91ed-f4b561b99705",
-        "20de66a1-69e6-4d4e-90a5-98bab649ffa9",
-        "56ed015a-e216-45a1-89a5-2c7da5119d57"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "4e2f9158-b0fe-483e-b58f-e3318bc4dd72",
+        "db3150a7-1d14-4ff6-ab0b-a32de5714748",
+        "77b64bd9-c640-4a9e-97ab-6ba2ed9827f1"
       ],
       "patch_count": 218
     },
     {
       "id": "duplicate-spacing",
       "label": "duplicate",
-      "session_id": "fd103ab5-b129-472d-8f87-83cc2443b17f",
+      "session_id": "d662faae-1457-4ccd-882e-5b1b22db6e84",
       "status": "completed",
-      "stop_reason": "candidate_budget_exhausted",
-      "candidate_count": 5,
+      "stop_reason": "runtime_budget_exhausted",
+      "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.5425170320323152,
+      "top_score": 0.47951552586312085,
       "operators": [
         "abstraction",
-        "conceptual_blend",
-        "analogy",
-        "counterfactual",
-        "inversion"
+        "conceptual_blend"
       ],
       "wander_path": [
-        "fb8b772a-cdbf-40b9-a148-04b98eb57919",
-        "50a2b397-110d-4d36-a626-cb97ae4160af",
-        "a0f24138-6237-4386-a23d-ac264aa10ee0",
-        "50ab9598-c432-41a1-836c-a73f8b5b89f6",
-        "c88508e5-1a30-4679-94ed-4772db454165",
-        "e72baf1d-d88f-4aea-857a-a16af968570f",
-        "bee2a2d8-c060-4efe-94c5-e3d34ed0ed1b",
-        "78e3ebf8-d4d0-49b5-9dfa-4aeda323289a",
-        "55a8adc9-e2a1-4354-b64e-e70985f445cc",
-        "610bfdb4-d139-41e6-b1e4-c0f6378ab4e2",
-        "de486475-326e-4705-8f6c-d0db51f6bca0"
+        "b7d0b4fb-5270-4f2f-8fe6-a21cea1fa03b",
+        "be487ebb-c06c-443b-b747-cc4c9396b9a6",
+        "831b4ab7-84d1-4446-8adc-203c1954ff4e",
+        "d2bee502-f1f2-42be-bd2d-722407b4a785",
+        "5b02f177-6915-46df-b8c1-5a6a0f2e865d",
+        "d92f97d2-e1fe-4284-b26f-9da156fce9bd",
+        "c5e98811-14b4-4ec5-945c-1ab47dee349f",
+        "32759b3a-7f2b-4e9f-b811-1099d569343a"
       ],
       "patch_count": 218
     }

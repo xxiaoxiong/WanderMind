@@ -206,12 +206,11 @@ async def test_knowledge_seed_wander_and_wonder_flow(
     assert wander_body["wonders"]
     assert wander_body["runtime"]["verified"] is True
     assert wander_body["runtime"]["provider"] == "mock"
-    assert wander_body["runtime"]["calls"] == 3
-    assert wander_body["runtime"]["completed_calls"] == 3
+    assert wander_body["runtime"]["calls"] == 2
+    assert wander_body["runtime"]["completed_calls"] == 2
     assert wander_body["runtime"]["purposes"] == [
         "candidate_synthesis",
-        "evidence",
-        "critic",
+        "candidate_review",
     ]
 
     metrics = await client.get("/metrics")
@@ -245,10 +244,29 @@ async def test_knowledge_seed_wander_and_wonder_flow(
     assert explored.json()["evaluation"]["evidence"]["supporting_evidence"] == []
     assert explored.json()["evaluation"]["evidence"]["uncertainty"] >= 0.8
     runtime_sessions = await container.repositories.runtime_sessions.list(offset=0, limit=10)
-    assert len(runtime_sessions) == 6
+    assert len(runtime_sessions) == 5
     assert all(str(value.wander_session_id) == session_id for value in runtime_sessions)
     assert all(value.status.value == "closed" for value in runtime_sessions)
     assert all(value.cost["runtime_calls"] == 1 for value in runtime_sessions)
+
+    deterministic = await client.post(
+        "/api/v1/wander",
+        json={
+            "content": "Retain a useful candidate when the Runtime budget is disabled.",
+            "budget": {
+                "max_steps": 2,
+                "max_patch_switches": 1,
+                "max_candidates": 1,
+                "max_runtime_calls": 0,
+                "time_budget_seconds": 30,
+            },
+        },
+    )
+    assert deterministic.status_code == 200
+    assert deterministic.json()["candidates"]
+    assert deterministic.json()["runtime"]["calls"] == 0
+    assert deterministic.json()["runtime"]["verified"] is False
+
     metrics = await client.get("/metrics")
     assert "wandermind_runtime_calls_total" in metrics.text
 

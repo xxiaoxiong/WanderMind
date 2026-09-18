@@ -78,9 +78,9 @@ export const api = {
         budget: {
           max_steps: 12,
           max_patch_switches: 3,
-          max_candidates: 6,
-          max_runtime_calls: 6,
-          time_budget_seconds: 120,
+          max_candidates: 4,
+          max_runtime_calls: 4,
+          time_budget_seconds: 100,
         },
       }),
     });

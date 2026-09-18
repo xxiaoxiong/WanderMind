@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from wandermind.application.candidate_runtime_service import (
+    CandidateReviewOutput,
     CandidateSynthesisOutput,
     RuntimeCandidateReviewer,
     RuntimeCandidateSynthesizer,
@@ -121,7 +122,11 @@ def build_container(
             max_retries=settings.runtime_max_retries,
             timeout_seconds=settings.runtime_timeout_seconds,
         ),
-        candidate_reviewer=RuntimeCandidateReviewer(deep_evaluation),
+        candidate_reviewer=RuntimeCandidateReviewer(
+            selected_runtime,
+            max_retries=settings.runtime_max_retries,
+            timeout_seconds=settings.runtime_timeout_seconds,
+        ),
     )
     incubation = IncubationService(selected_repositories, wander_engine)
     return ApplicationContainer(
@@ -188,6 +193,27 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
                 assumptions=["Local capacity signals are observable before system-wide failure."],
                 implications=["Admission thresholds can be tuned from local feedback latency."],
                 questions=["Does earlier local backpressure reduce peak queue depth?"],
+            ).model_dump(mode="json"),
+            "candidate_review": CandidateReviewOutput(
+                expanded_idea=(
+                    "Treat the connection as a falsifiable control hypothesis: earlier local "
+                    "saturation signals should reduce peak queue depth without centralized routing."
+                ),
+                supporting_evidence=[
+                    "Both knowledge items describe local feedback changing system-wide allocation."
+                ],
+                counter_evidence=[
+                    "Domain-specific delays may make the control loops behave differently."
+                ],
+                source_refs=[],
+                uncertainty=0.35,
+                weaknesses=["The transfer still requires an operational comparison."],
+                obviousness=0.2,
+                factual_risk=0.3,
+                alternative_explanations=[
+                    "The overlap may reflect generic resource-allocation language."
+                ],
+                verdict="pass",
             ).model_dump(mode="json"),
             "explorer": ExplorerOutput(
                 expanded_idea="The connection can be explored as a testable structural analogy.",

@@ -58,6 +58,7 @@ class TrackedRuntimeAdapter(AgentRuntimeAdapter):
                 purpose=session.purpose,
                 duration_seconds=duration,
                 error_type=type(error).__name__,
+                error_message=self._safe_error_message(error),
             )
             raise
         duration = time.perf_counter() - started
@@ -150,7 +151,11 @@ class TrackedRuntimeAdapter(AgentRuntimeAdapter):
         session.cost["failures"] = int(session.cost.get("failures", 0)) + 1
         session.cost["provider"] = session.provider
         session.metadata["last_error"] = type(error).__name__
+        session.metadata["last_error_message"] = self._safe_error_message(error)
         self._touch(session)
+
+    def _safe_error_message(self, error: Exception) -> str:
+        return str(error)[:1_000]
 
     def _touch(self, session: RuntimeSession) -> None:
         now = utc_now()

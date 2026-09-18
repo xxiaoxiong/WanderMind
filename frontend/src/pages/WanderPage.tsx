@@ -22,6 +22,7 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
   const [result, setResult] = useState<WanderRunResponse | null>(null);
   const [steps, setSteps] = useState<WanderStep[]>([]);
   const [busy, setBusy] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [knowledgeCount, setKnowledgeCount] = useState<number | null>(null);
 
@@ -30,6 +31,18 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
       .then((response) => setKnowledgeCount(response.items.length))
       .catch(() => setError(t("wander.knowledgeLoadError")));
   }, [t]);
+
+  useEffect(() => {
+    if (!busy) {
+      setElapsedSeconds(0);
+      return undefined;
+    }
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [busy]);
 
   const missingKnowledge = Math.max(
     0,
@@ -102,7 +115,9 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
         </div>
       </section>
 
-      {busy && !result ? <LoadingOrbit label={t("wander.agentRunning")} /> : null}
+      {busy && !result ? (
+        <LoadingOrbit label={`${t("wander.agentRunning")} · ${elapsedSeconds}s`} />
+      ) : null}
       {result ? (
         <div className="wander-results">
           <section className="trace-section">

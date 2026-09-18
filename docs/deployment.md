@@ -11,9 +11,9 @@
 3. 创建资源并等待 `/health` 变为 200。
 4. 在 Web Service 的 Environment 页面以 Secret 添加 `WANDERMIND_LLM_API_KEY`；Blueprint 已配置 `openai`、Agnes APIHub URL 与 `agnes-2.5-flash`，但不会保存真实密钥。
 5. 直接访问服务 URL。
-6. 导入至少三条非敏感测试知识并执行 Wander；确认响应 `runtime.verified=true`、provider 为 `openai-compatible`、模型为预期 Agnes 模型、`calls >= 1`，且前端展示 Runtime 证据。若候选达到阈值，一轮完整调用应包含 `candidate_synthesis`、`evidence`、`critic`。
+6. 导入至少三条非敏感测试知识并执行 Wander；确认响应 `runtime.verified=true`、provider 为 `openai-compatible`、模型为预期 Agnes 模型、`calls >= 1`，且前端展示 Runtime 证据。若候选达到阈值，一轮完整调用应包含 `candidate_synthesis` 与 `candidate_review`。
 
-线上 Blueprint 没有 Codex App Server 凭据，实际使用 Agnes APIHub；本机 Codex Adapter 通过 `python backend/scripts/run_live_codex_smoke.py --executable <codex-path>` 独立验收。不要把 OpenAI-compatible/Agnes 调用描述为 Codex 调用。
+线上 Blueprint 没有 Codex App Server 凭据，实际使用 Agnes APIHub；本机 Codex Adapter 可通过 `python backend/scripts/run_live_codex_smoke.py --executable <codex-path>` 验证协议，并通过 `python backend/scripts/run_live_codex_wander.py --executable <codex-path>` 验证完整主流程。不要把 OpenAI-compatible/Agnes 调用描述为 Codex 调用。
 
 Blueprint 将 Render 的 `connectionString` 注入 `WANDERMIND_DATABASE_URL`。应用会把 `postgresql://` 或 `postgres://` 自动转换为 asyncpg URL。PostgreSQL 迁移会创建 `vector` 扩展及 V0.1 schema。
 

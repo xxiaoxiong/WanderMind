@@ -68,7 +68,7 @@ WANDERMIND_ACCESS_PASSWORD=<generate-a-long-random-value>
 
 ## Runtime
 
-主 Wander 在生成 Candidate 时至少使用一次配置的 Runtime；达到质量阈值且剩余预算不少于两次时，再分别执行 Evidence 与 Critic。`max_runtime_calls=3` 可覆盖一轮完整的综合、证据和批判；交互前端默认使用 6 次预算，以便首个候选未通过时继续尝试。
+主 Wander 对每个完整 Candidate 使用两次配置的 Runtime：`candidate_synthesis` 负责有依据的候选综合，达到质量阈值后由独立 `candidate_review` 一次完成证据检查与反向批判。默认 `max_runtime_calls=4`，交互前端同样使用 4 次预算，可完整尝试两个候选；详情页的深度探索仍分别运行 Explorer、Evidence 与 Critic。
 
 ### Mock
 
@@ -87,7 +87,7 @@ WANDERMIND_RUNTIME_CWD=/absolute/readable/path
 - `approvalPolicy=never`
 - `sandbox=read-only`
 - `networkAccess=false`
-- 每个 Explorer/Evidence/Critic 使用独立线程
+- Candidate Synthesis/Review 及 Explorer/Evidence/Critic 各使用独立线程
 - 所有输出必须通过 JSON Schema 与 Pydantic
 
 `workspace-write` 在 Adapter 构造时默认关闭，即使 RuntimeTask 请求写权限也会被拒绝。

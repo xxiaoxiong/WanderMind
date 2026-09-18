@@ -3,7 +3,9 @@ from uuid import uuid4
 import pytest
 
 from wandermind.application.candidate_runtime_service import (
+    CandidateReviewOutput,
     CandidateSynthesisOutput,
+    RuntimeCandidateReviewer,
     RuntimeCandidateSynthesizer,
 )
 from wandermind.application.evaluation import CriticVerdict, EvidenceOutput, ExplorerOutput
@@ -41,6 +43,12 @@ def candidate() -> Candidate:
         source_items=[uuid4(), uuid4()],
         operator="analogy",
     )
+
+
+def test_candidate_runtime_schemas_require_every_property() -> None:
+    for output_model in (CandidateSynthesisOutput, CandidateReviewOutput):
+        schema = output_model.model_json_schema()
+        assert set(schema["required"]) == set(schema["properties"])
 
 
 def test_secret_redaction_is_recursive() -> None:
@@ -266,3 +274,73 @@ async def test_candidate_synthesis_uses_runtime_and_preserves_operator_structure
     assert result.operator_result.structured["mapping"] == draft.structured["mapping"]
     assert result.operator_result.structured["runtime_synthesis"] is True
     assert all(session.status.value == "closed" for session in runtime.sessions.values())
+
+
+@pytest.mark.asyncio
+async def test_candidate_review_uses_one_grounded_runtime_call() -> None:
+    left = KnowledgeItem(
+        title="Queues",
+        content="Queues expose local saturation signals.",
+        source_ref="https://example.test/queues",
+    )
+    right = KnowledgeItem(
+        title="Ants",
+        content="Ant colonies coordinate through local feedback.",
+    )
+    review_output = CandidateReviewOutput(
+        expanded_idea=(
+            "Compare whether earlier local signals reduce overload in both decentralized systems."
+        ),
+        supporting_evidence=["Both sources describe local feedback."],
+        counter_evidence=["The mechanisms operate at different timescales."],
+        source_refs=["https://example.test/queues", f"knowledge:{right.id}"],
+        uncertainty=0.35,
+        weaknesses=["The analogy still needs an operational metric."],
+        obviousness=0.2,
+        factual_risk=0.25,
+        alternative_explanations=["The overlap may be generic control language."],
+        verdict="pass",
+    )
+    runtime = MockRuntimeAdapter(response=review_output.model_dump(mode="json"))
+
+    result = await RuntimeCandidateReviewer(runtime).review(
+        candidate(),
+        [left, right],
+        max_runtime_calls=1,
+    )
+
+    assert runtime.calls == 1
+    assert result.runtime_calls == 1
+    assert result.verdict == "pass"
+    assert result.source_refs == review_output.source_refs
+    assert all(session.status.value == "closed" for session in runtime.sessions.values())
+
+
+@pytest.mark.asyncio
+async def test_candidate_review_downgrades_invented_citations() -> None:
+    context = [KnowledgeItem(title="Queues", content="Queues expose saturation signals.")]
+    runtime = MockRuntimeAdapter(
+        response=CandidateReviewOutput(
+            expanded_idea="A detailed but insufficiently grounded expansion for review.",
+            supporting_evidence=["Invented support."],
+            counter_evidence=[],
+            source_refs=["https://invented.example/source"],
+            uncertainty=0.2,
+            weaknesses=[],
+            obviousness=0.1,
+            factual_risk=0.2,
+            alternative_explanations=[],
+            verdict="pass",
+        ).model_dump(mode="json")
+    )
+
+    result = await RuntimeCandidateReviewer(runtime).review(
+        candidate(),
+        context,
+        max_runtime_calls=1,
+    )
+
+    assert result.verdict == "revise"
+    assert result.source_refs == []
+    assert result.supporting_evidence == []
+    assert result.uncertainty == 0.8

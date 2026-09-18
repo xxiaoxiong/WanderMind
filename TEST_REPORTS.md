@@ -6,14 +6,15 @@
 
 | Gate | 结果 | 证据 |
 |---|---|---|
-| Backend full suite | PASS | Pytest 71/71，coverage 84% |
-| Runtime main path | PASS | API 回归验证 `candidate_synthesis -> evidence -> critic`，单次主漫游 3/3 调用完成 |
+| Backend full suite | PASS | Pytest 74/74，coverage 80.13% |
+| Runtime main path | PASS | API 回归验证 `candidate_synthesis -> candidate_review`，单次主漫游 2/2 调用完成 |
 | Early-stop regression | PASS | 低质量候选后继续尝试唯一知识对，测试至少生成 2 个候选 |
 | Frontend | PASS | Vitest 8/8、ESLint、TypeScript、Vite production build |
-| Cognitive benchmark | PASS | 12 cases，回归阈值通过；Runtime 调用改由持久化会话统计 |
-| Real Codex smoke | PASS | `codex-app-server`，JSON Schema valid，119.168 秒；线程与进程在 finally 中关闭 |
+| Cognitive benchmark | PASS | 12 cases；hit 100%、high-value 83.33%、明显/随机/重复错误呈现率 0%、Runtime 36 次 |
+| Real Codex adapter smoke | PASS | `codex-app-server`，JSON Schema valid，119.449 秒；线程与进程在 finally 中关闭 |
+| Real Codex Wander E2E | PASS | 主引擎真实完成 `candidate_synthesis` 与 `candidate_review` 2/2，Runtime verified，268.968 秒 |
 
-Render 使用 `openai-compatible` Adapter 连接 Agnes APIHub；它不是 Codex。真实 Codex 能力由本机 Codex App Server 冒烟独立验证，线上 Provider/模型以每次 Wander 响应中的 Runtime 摘要为准。
+Render 使用 `openai-compatible` Adapter 连接 Agnes APIHub；它不是 Codex。真实 Codex 能力由本机 Codex App Server 的 Adapter 与完整 Wander 两级测试独立验证，线上 Provider/模型以每次 Wander 响应中的 Runtime 摘要为准。
 
 | Gate | 结果 | 证据 |
 |---|---|---|

@@ -13,7 +13,7 @@ class WanderBudget(DomainModel):
     max_steps: int = Field(default=8, ge=1, le=100)
     max_patch_switches: int = Field(default=2, ge=0, le=20)
     max_candidates: int = Field(default=5, ge=1, le=100)
-    max_runtime_calls: int = Field(default=3, ge=0, le=100)
+    max_runtime_calls: int = Field(default=4, ge=0, le=100)
     time_budget_seconds: float = Field(default=30.0, gt=0, le=3_600)
 
 

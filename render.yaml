@@ -28,6 +28,10 @@ services:
         value: "0.2"
       - key: WANDERMIND_LLM_MAX_OUTPUT_TOKENS
         value: "2000"
+      - key: WANDERMIND_RUNTIME_MAX_RETRIES
+        value: "0"
+      - key: WANDERMIND_RUNTIME_TIMEOUT_SECONDS
+        value: "45"
       - key: WANDERMIND_AUTO_CREATE_SCHEMA
         value: "false"
       - key: WANDERMIND_ENABLE_SCHEDULER
