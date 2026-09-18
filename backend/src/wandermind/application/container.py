@@ -206,7 +206,7 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
                     "Domain-specific delays may make the control loops behave differently."
                 ],
                 source_refs=[],
-                uncertainty=0.35,
+                uncertainty=0.9,
                 weaknesses=["The transfer still requires an operational comparison."],
                 obviousness=0.2,
                 factual_risk=0.3,

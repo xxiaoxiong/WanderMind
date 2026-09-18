@@ -380,6 +380,7 @@ class WanderEngine:
                             "verdict": review.verdict,
                             "factual_risk": review.factual_risk,
                             "obviousness": review.obviousness,
+                            "uncertainty": review.uncertainty,
                         },
                     )
                 elif (
@@ -404,7 +405,6 @@ class WanderEngine:
                         review is not None
                         and review.verdict == "pass"
                         and review.factual_risk < 0.75
-                        and review.uncertainty < 0.8
                     )
                 )
                 review_assisted_surface = (
@@ -455,7 +455,16 @@ class WanderEngine:
                         supporting_evidence=(review.supporting_evidence if review else []),
                         counter_evidence=(review.counter_evidence if review else []),
                         scores=scores,
-                        confidence=(scores.coherence + scores.evidence_potential) / 2,
+                        confidence=(
+                            (
+                                scores.coherence
+                                + scores.evidence_potential
+                                + (1.0 - review.uncertainty)
+                            )
+                            / 3
+                            if review is not None
+                            else (scores.coherence + scores.evidence_potential) / 2
+                        ),
                         metadata={
                             "score_explanation": score_explanation.model_dump(mode="json"),
                             "runtime_review": review.model_dump(mode="json") if review else None,
