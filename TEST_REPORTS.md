@@ -13,6 +13,9 @@
 | Cognitive benchmark | PASS | 12 cases；hit 100%、high-value 83.33%、明显/随机/重复错误呈现率 0%、Runtime 36 次 |
 | Real Codex adapter smoke | PASS | `codex-app-server`，JSON Schema valid，119.449 秒；线程与进程在 finally 中关闭 |
 | Real Codex Wander E2E | PASS | 主引擎真实完成 `candidate_synthesis` 与 `candidate_review` 2/2，Runtime verified，268.968 秒 |
+| Render live positive suite | PASS | 中/英文 3/3 产出 Wonder；29.19–39.82 秒；均为 `openai-compatible` / `agnes-2.5-flash` 且 Runtime verified |
+| Render live negative control | PASS | 荒诞 Seed 生成 0 Wonder，2 个候选均命中 arbitrariness guard；Runtime 轨迹完整 |
+| Hosted browser acceptance | PASS | 无登录框、中文无替换字符、洞见详情可打开；评分字段契约回归测试禁止 `NaN` |
 
 Render 使用 `openai-compatible` Adapter 连接 Agnes APIHub；它不是 Codex。真实 Codex 能力由本机 Codex App Server 的 Adapter 与完整 Wander 两级测试独立验证，线上 Provider/模型以每次 Wander 响应中的 Runtime 摘要为准。
 

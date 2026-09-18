@@ -14,10 +14,13 @@ describe("presentation primitives", () => {
       <ScoreGrid
         scores={{
           novelty: 0.81,
-          coherence: 0.73,
-          usefulness: 0.66,
           surprise: 0.59,
+          personal_relevance: 0.66,
+          coherence: 0.73,
+          generativity: 0.61,
+          explanatory_power: 0.64,
           evidence_potential: 0.42,
+          cross_domain_value: 0.7,
           redundancy: 0.1,
           arbitrariness: 0.2,
           hallucination_risk: 0.15,
@@ -28,5 +31,6 @@ describe("presentation primitives", () => {
     expect(screen.getByText("Novelty")).toBeInTheDocument();
     expect(screen.getByText("81")).toBeInTheDocument();
     expect(screen.getByText("Evidence")).toBeInTheDocument();
+    expect(screen.queryByText("NaN")).not.toBeInTheDocument();
   });
 });

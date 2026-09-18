@@ -35,10 +35,13 @@ export interface Seed {
 
 export interface WonderScores {
   novelty: number;
-  coherence: number;
-  usefulness: number;
   surprise: number;
+  personal_relevance: number;
+  coherence: number;
+  generativity: number;
+  explanatory_power: number;
   evidence_potential: number;
+  cross_domain_value: number;
   redundancy: number;
   arbitrariness: number;
   hallucination_risk: number;

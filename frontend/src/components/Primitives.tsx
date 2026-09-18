@@ -41,7 +41,7 @@ export function ScoreGrid({ scores }: { scores: WonderScores }) {
   const scoreLabels: Array<[keyof WonderScores, string]> = [
     ["novelty", t("score.novelty")],
     ["coherence", t("score.coherence")],
-    ["usefulness", t("score.usefulness")],
+    ["personal_relevance", t("score.usefulness")],
     ["surprise", t("score.surprise")],
     ["evidence_potential", t("score.evidence")],
   ];

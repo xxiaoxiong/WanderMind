@@ -22,6 +22,7 @@
 - A grounded Runtime review may repair a low-risk `revise` result into a caveated testable hypothesis, while explicit arbitrary framing, duplication, hallucination risk and critic rejection still block promotion.
 - Candidate Runtime schemas require every structured field, matching strict Codex output-schema requirements.
 - Wander loading now shows elapsed seconds, and hosted Runtime retries/timeouts are bounded for predictable interaction latency.
+- Frontend score types now match the backend `WonderScores` contract; the usefulness row maps to `personal_relevance` instead of rendering `NaN`.
 - Render Blueprint now exposes the trial instance without Basic Auth by default; self-hosters can still enable the optional access gate with environment variables.
 
 ### Security
