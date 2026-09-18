@@ -79,8 +79,8 @@ export const api = {
           max_steps: 12,
           max_patch_switches: 3,
           max_candidates: 6,
-          max_runtime_calls: 3,
-          time_budget_seconds: 45,
+          max_runtime_calls: 6,
+          time_budget_seconds: 120,
         },
       }),
     });

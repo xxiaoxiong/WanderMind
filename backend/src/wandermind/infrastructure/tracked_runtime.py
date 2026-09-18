@@ -114,6 +114,9 @@ class TrackedRuntimeAdapter(AgentRuntimeAdapter):
         self._touch(session)
         await self.repository.update(session)
 
+    async def close(self) -> None:
+        await self.delegate.close()
+
     def _bind_wander_session(self, session: RuntimeSession, task: RuntimeTask) -> None:
         raw_session_id = task.metadata.get("wander_session_id")
         if raw_session_id is None:

@@ -13,7 +13,7 @@
 | 6 Cognitive Operators | 完成 | 六算子、schema、break points、selector tests |
 | 7 Wander Engine | 完成 | 状态机、预算、移动、碰撞、候选、停止、Trace |
 | 8 Scoring | 完成 | 多维评分、三类惩罚、sweet spot、阈值与解释 |
-| 9 Runtime | 完成 | Adapter、Mock/Codex、重试/中断、会话与成本持久化 |
+| 9 Runtime | 完成 | 主漫游候选综合/证据/批判均接入 Adapter；Mock/Codex/OpenAI-compatible；会话与成本持久化 |
 | 10 Explorer/Evidence/Critic | 完成 | 独立会话、无引用不造证据、失败默认 reject |
 | 11 Incubation/Re-Wonder | 完成 | Scheduler、老/新配对、静默、Recent Seed、血缘 |
 | 12 API/UI | 完成 | REST、SSE、统一错误、四页 React UI、组件测试、E2E |
@@ -30,6 +30,16 @@
 - Scale：1000 KnowledgeItems × 100 Wander Sessions。
 - Security：秘密扫描、请求限制、Runtime sandbox。
 - Delivery：Compose config/build 与健康检查。
+
+## 2026-09-18 Runtime 整改验收
+
+- [x] 主 `POST /wander` 流程真实调用 `candidate_synthesis`，高分候选继续调用 `evidence` 与 `critic`，不再用本地状态跳转伪装 Runtime 阶段。
+- [x] 候选对去重，不再生成镜像重复组合；单个任意性、幻觉或低新颖度候选只淘汰自身，不再提前终止整轮搜索。
+- [x] 响应返回脱敏 Runtime 摘要（Provider、模型、调用/失败数、耗时、token、用途），前端直接展示验证状态。
+- [x] 没有 Wonder 时展示最高分 Candidate、解释、分数与完成原因；预算/搜索空间耗尽属于正常 `completed`。
+- [x] `backend/scripts/run_live_codex_smoke.py` 真实连接本机 Codex App Server，验证 JSON Schema 输出并在 `finally` 中关闭线程与进程。
+- [x] 本机真实 Codex 冒烟通过：`codex-app-server`、schema valid、119.168 秒。
+- [ ] Render 线上连续真实任务验收（部署本次提交后执行并记录）。
 
 ## 需要仓库所有者完成
 

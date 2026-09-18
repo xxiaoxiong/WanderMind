@@ -208,6 +208,14 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 .wander-outcome { position: sticky; top: 32px; padding: 27px; border: 1px solid rgba(95,127,25,.25); border-radius: 10px; background: var(--outcome); }
 .wander-outcome h2 { margin: 18px 0 14px; font-size: 23px; line-height: 1.25; letter-spacing: -.035em; }
 .wander-outcome p { color: var(--muted); font-size: 11px; line-height: 1.7; }
+.runtime-proof { display: grid; gap: 5px; margin: 16px 0 22px; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: rgba(255,255,255,.35); }
+.runtime-proof strong { font-size: 10px; }
+.runtime-proof span, .runtime-proof small { color: var(--muted); font: 300 8px var(--mono); overflow-wrap: anywhere; }
+.runtime-verified { border-color: rgba(95,127,25,.35); }
+.runtime-verified strong { color: var(--lime); }
+.runtime-missing strong { color: var(--amber); }
+.candidate-label { display: block; margin-top: 18px; color: var(--lime); font: 300 8px var(--mono); text-transform: uppercase; letter-spacing: .09em; }
+.stop-reason { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); font-family: var(--mono); }
 .signal-number { margin: 28px 0; color: var(--lime); font: 300 52px var(--mono); letter-spacing: -.08em; }
 .signal-number small { color: var(--dim); font-size: 12px; letter-spacing: 0; }
 

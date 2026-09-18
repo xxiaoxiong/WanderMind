@@ -1,6 +1,19 @@
 # WanderMind V0.1 测试总览
 
-日期：2026-09-15
+日期：2026-09-18
+
+## Runtime 主流程整改
+
+| Gate | 结果 | 证据 |
+|---|---|---|
+| Backend full suite | PASS | Pytest 71/71，coverage 84% |
+| Runtime main path | PASS | API 回归验证 `candidate_synthesis -> evidence -> critic`，单次主漫游 3/3 调用完成 |
+| Early-stop regression | PASS | 低质量候选后继续尝试唯一知识对，测试至少生成 2 个候选 |
+| Frontend | PASS | Vitest 8/8、ESLint、TypeScript、Vite production build |
+| Cognitive benchmark | PASS | 12 cases，回归阈值通过；Runtime 调用改由持久化会话统计 |
+| Real Codex smoke | PASS | `codex-app-server`，JSON Schema valid，119.168 秒；线程与进程在 finally 中关闭 |
+
+Render 使用 `openai-compatible` Adapter 连接 Agnes APIHub；它不是 Codex。真实 Codex 能力由本机 Codex App Server 冒烟独立验证，线上 Provider/模型以每次 Wander 响应中的 Runtime 摘要为准。
 
 | Gate | 结果 | 证据 |
 |---|---|---|

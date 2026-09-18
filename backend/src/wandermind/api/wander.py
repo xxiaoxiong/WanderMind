@@ -12,6 +12,7 @@ from sse_starlette.sse import EventSourceResponse
 from wandermind.api.dependencies import get_container
 from wandermind.api.schemas import WanderCreate, WanderRunResponse
 from wandermind.application.container import ApplicationContainer
+from wandermind.application.runtime_summary import summarize_runtime
 from wandermind.cognitive.seed_selector import SeedSelector
 from wandermind.infrastructure.errors import InsufficientKnowledgeError, NotFoundError
 from wandermind.infrastructure.observability import record_wander_run
@@ -29,10 +30,14 @@ async def run_wander(payload: WanderCreate, container: Container) -> WanderRunRe
     seed = await _resolve_seed(payload, container)
     result = await container.wander_engine.run(seed, payload.budget)
     record_wander_run(result.session, result.candidates, result.wonders)
+    runtime_sessions = await container.repositories.runtime_sessions.list_for_wander(
+        result.session.id
+    )
     return WanderRunResponse(
         session=result.session,
         candidates=result.candidates,
         wonders=result.wonders,
+        runtime=summarize_runtime(container.settings.runtime_adapter, runtime_sessions),
     )
 
 

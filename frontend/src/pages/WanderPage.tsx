@@ -3,10 +3,18 @@ import { useEffect, useState } from "react";
 import { api, ApiError, streamWanderTrace } from "../api";
 import { Eyebrow, LoadingOrbit, Notice, StatusPill } from "../components/Primitives";
 import { TraceTimeline } from "../components/TraceTimeline";
-import type { WanderRunResponse, WanderStep } from "../types";
+import type { Candidate, WanderRunResponse, WanderStep } from "../types";
 import { usePreferences } from "../preferences";
 
 const MINIMUM_KNOWLEDGE_ITEMS = 2;
+
+function selectBestCandidate(candidates: Candidate[]): Candidate | null {
+  const first = candidates[0];
+  if (!first) return null;
+  return candidates.slice(1).reduce((best, candidate) => (
+    (candidate.scores?.total ?? 0) > (best.scores?.total ?? 0) ? candidate : best
+  ), first);
+}
 
 export function WanderPage({ seedId }: { seedId: string | null }) {
   const { t } = usePreferences();
@@ -28,6 +36,7 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
     MINIMUM_KNOWLEDGE_ITEMS - (knowledgeCount ?? 0),
   );
   const knowledgeReady = knowledgeCount !== null && missingKnowledge === 0;
+  const bestCandidate = selectBestCandidate(result?.candidates ?? []);
 
   const run = async () => {
     if (!knowledgeReady || (!seedId && !prompt.trim())) return;
@@ -93,7 +102,7 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
         </div>
       </section>
 
-      {busy && !result ? <LoadingOrbit /> : null}
+      {busy && !result ? <LoadingOrbit label={t("wander.agentRunning")} /> : null}
       {result ? (
         <div className="wander-results">
           <section className="trace-section">
@@ -105,12 +114,40 @@ export function WanderPage({ seedId }: { seedId: string | null }) {
           </section>
           <aside className="wander-outcome">
             <span className="outcome-label">{t("wander.outcome")}</span>
+            <div className={"runtime-proof " + (result.runtime.verified ? "runtime-verified" : "runtime-missing")}>
+              <strong>
+                {result.runtime.verified ? t("wander.runtimeVerified") : t("wander.runtimeUnavailable")}
+              </strong>
+              <span>{[result.runtime.provider, result.runtime.model].filter(Boolean).join(" · ") || result.runtime.configured_adapter}</span>
+              <small>
+                {t("wander.runtimeCalls", {
+                  count: result.runtime.completed_calls,
+                  seconds: result.runtime.duration_seconds.toFixed(1),
+                })}
+                {result.runtime.total_tokens > 0 ? " · " + t("wander.runtimeTokens", { count: result.runtime.total_tokens }) : ""}
+              </small>
+            </div>
             {result.wonders[0] ? (
               <>
                 <h2>{result.wonders[0].statement}</h2>
                 <p>{result.wonders[0].why_interesting}</p>
                 <div className="signal-number">{Math.round(result.wonders[0].scores.total * 100)}<small>/100</small></div>
                 <a className="button button-primary" href={"#/wonders/" + result.wonders[0].id}>{t("wander.open")}</a>
+              </>
+            ) : bestCandidate ? (
+              <>
+                <span className="candidate-label">{t("wander.bestCandidate")}</span>
+                <h2>{bestCandidate.statement}</h2>
+                <p>{bestCandidate.explanation}</p>
+                {bestCandidate.scores ? (
+                  <div className="signal-number">{Math.round(bestCandidate.scores.total * 100)}<small>/100</small></div>
+                ) : null}
+                <StatusPill status={bestCandidate.status} />
+                <p className="stop-reason">
+                  {t("wander.stopReason", {
+                    reason: (result.session.trace.stop_reason ?? "search_space_exhausted").replaceAll("_", " "),
+                  })}
+                </p>
               </>
             ) : (
               <>

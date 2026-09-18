@@ -4,6 +4,11 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from wandermind.application.candidate_runtime_service import (
+    CandidateSynthesisOutput,
+    RuntimeCandidateReviewer,
+    RuntimeCandidateSynthesizer,
+)
 from wandermind.application.deletion_service import DataDeletionService
 from wandermind.application.evaluation import (
     CriticOutput,
@@ -84,12 +89,6 @@ def build_container(
             surface_above=settings.wonder_threshold,
         ),
     )
-    wander_engine = WanderEngine(
-        selected_repositories,
-        embedding,
-        OperatorSelector(default_operators()),
-        scorer,
-    )
     runtime_delegate = runtime or _build_runtime(settings)
     selected_runtime = TrackedRuntimeAdapter(
         runtime_delegate,
@@ -111,6 +110,18 @@ def build_container(
             max_retries=settings.runtime_max_retries,
             timeout_seconds=settings.runtime_timeout_seconds,
         ),
+    )
+    wander_engine = WanderEngine(
+        selected_repositories,
+        embedding,
+        OperatorSelector(default_operators()),
+        scorer,
+        candidate_synthesizer=RuntimeCandidateSynthesizer(
+            selected_runtime,
+            max_retries=settings.runtime_max_retries,
+            timeout_seconds=settings.runtime_timeout_seconds,
+        ),
+        candidate_reviewer=RuntimeCandidateReviewer(deep_evaluation),
     )
     incubation = IncubationService(selected_repositories, wander_engine)
     return ApplicationContainer(
@@ -163,6 +174,21 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
         )
     return MockRuntimeAdapter(
         responses={
+            "candidate_synthesis": CandidateSynthesisOutput(
+                statement=(
+                    "Decentralized systems can limit overload by turning local saturation signals "
+                    "into admission control before capacity collapses."
+                ),
+                explanation=(
+                    "The source domains share a feedback structure: individual workers expose "
+                    "local capacity signals, while the wider system slows or redirects incoming "
+                    "work. The connection is testable by measuring whether earlier local feedback "
+                    "reduces queue growth without central coordination."
+                ),
+                assumptions=["Local capacity signals are observable before system-wide failure."],
+                implications=["Admission thresholds can be tuned from local feedback latency."],
+                questions=["Does earlier local backpressure reduce peak queue depth?"],
+            ).model_dump(mode="json"),
             "explorer": ExplorerOutput(
                 expanded_idea="The connection can be explored as a testable structural analogy.",
                 implications=[

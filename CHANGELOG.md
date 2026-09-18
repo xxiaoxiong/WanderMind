@@ -4,12 +4,18 @@
 
 ### Added
 
+- Agent-backed candidate synthesis in the primary Wander flow, followed by real evidence and critic calls for promising candidates.
+- Per-run Runtime proof in API/UI: configured adapter, actual provider/model, calls, failures, duration, tokens and purposes.
+- Reusable real Codex App Server smoke script with strict structured-output validation and clean process shutdown.
 - Persistent English/Simplified Chinese UI switching and OS-aware light/dark themes.
 - OpenAI-compatible runtime with Agnes defaults, JSON Schema validation, retries, timeout handling and token usage tracking.
 - Live multilingual business-flow smoke script covering exploration, evidence, critique and adversarial source invention.
 
 ### Changed
 
+- Wander search now explores unique knowledge pairs and continues after individual quality guards instead of stopping on the first weak candidate.
+- Normal budget/search exhaustion completes cleanly, and the UI retains the best candidate when no Wonder crosses the surface threshold.
+- Cognitive benchmark Runtime-call metrics now come from persisted Runtime sessions instead of a constant placeholder.
 - Render Blueprint now exposes the trial instance without Basic Auth by default; self-hosters can still enable the optional access gate with environment variables.
 
 ### Security

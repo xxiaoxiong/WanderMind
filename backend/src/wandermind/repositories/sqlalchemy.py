@@ -379,6 +379,16 @@ class SQLRuntimeSessionRepository(SQLRepository[RuntimeSessionRow]):
             rows = (await session.scalars(statement)).all()
             return [_runtime_session_model(row) for row in rows]
 
+    async def list_for_wander(self, wander_session_id: UUID) -> builtins.list[RuntimeSession]:
+        statement = (
+            select(RuntimeSessionRow)
+            .where(RuntimeSessionRow.wander_session_id == wander_session_id)
+            .order_by(RuntimeSessionRow.created_at)
+        )
+        async with self.factory() as session:
+            rows = (await session.scalars(statement)).all()
+            return [_runtime_session_model(row) for row in rows]
+
 
 @dataclass(slots=True)
 class SQLAlchemyRepositoryBundle:

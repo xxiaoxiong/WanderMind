@@ -2,6 +2,10 @@ from uuid import uuid4
 
 import pytest
 
+from wandermind.application.candidate_runtime_service import (
+    CandidateSynthesisOutput,
+    RuntimeCandidateSynthesizer,
+)
 from wandermind.application.evaluation import CriticVerdict, EvidenceOutput, ExplorerOutput
 from wandermind.application.explore_service import (
     CriticService,
@@ -9,9 +13,11 @@ from wandermind.application.explore_service import (
     EvidenceService,
     ExplorerService,
 )
+from wandermind.cognitive.association import Association, AssociationType
+from wandermind.cognitive.operators import OperatorContext, OperatorResult
 from wandermind.infrastructure.security import redact_secrets
 from wandermind.infrastructure.tracked_runtime import TrackedRuntimeAdapter
-from wandermind.models import Candidate, KnowledgeItem, WonderType
+from wandermind.models import Candidate, KnowledgeItem, Seed, WonderType
 from wandermind.repositories.in_memory import InMemoryRuntimeSessionRepository
 from wandermind.runtime import (
     MockRuntimeAdapter,
@@ -210,3 +216,53 @@ async def test_deep_evaluation_honors_zero_runtime_call_budget() -> None:
     assert result.explorer is None
     assert result.evidence.error == "runtime_budget_exhausted"
     assert result.critic.verdict is CriticVerdict.REJECT
+
+
+@pytest.mark.asyncio
+async def test_candidate_synthesis_uses_runtime_and_preserves_operator_structure() -> None:
+    left = KnowledgeItem(title="Queues", content="Queues expose local saturation signals.")
+    right = KnowledgeItem(title="Ants", content="Ant colonies coordinate through local feedback.")
+    context = OperatorContext(
+        seed=Seed(content="How can local signals prevent overload?"),
+        left=left,
+        right=right,
+        association=Association(
+            type=AssociationType.SHARED_PATTERN,
+            strength=0.7,
+            distance=0.6,
+            shared_terms=["local", "signals"],
+            explanation="Both systems expose local feedback.",
+        ),
+    )
+    draft = OperatorResult(
+        wonder_type=WonderType.CONNECTION,
+        statement="Draft connection",
+        explanation="A draft explanation grounded in both supplied source items.",
+        structured={"mapping": {"source": "Queues", "target": "Ants"}},
+        questions=["Draft question?"],
+    )
+    runtime = MockRuntimeAdapter(
+        response=CandidateSynthesisOutput(
+            statement="Local saturation signals may coordinate decentralized admission control.",
+            explanation=(
+                "Both sources describe local feedback that changes system-wide allocation without "
+                "requiring one central planner."
+            ),
+            assumptions=["Signals arrive before collapse."],
+            implications=["Feedback latency becomes a control parameter."],
+            questions=["How does latency change peak queue depth?"],
+        ).model_dump(mode="json")
+    )
+
+    result = await RuntimeCandidateSynthesizer(runtime).synthesize(
+        context,
+        draft,
+        wander_session_id=str(uuid4()),
+    )
+
+    assert result.verified is True
+    assert result.runtime_calls == 1
+    assert result.operator_result.statement.startswith("Local saturation")
+    assert result.operator_result.structured["mapping"] == draft.structured["mapping"]
+    assert result.operator_result.structured["runtime_synthesis"] is True
+    assert all(session.status.value == "closed" for session in runtime.sessions.values())

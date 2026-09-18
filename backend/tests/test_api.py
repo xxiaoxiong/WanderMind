@@ -204,6 +204,15 @@ async def test_knowledge_seed_wander_and_wonder_flow(
     assert wander_body["session"]["status"] == "completed"
     assert wander_body["candidates"]
     assert wander_body["wonders"]
+    assert wander_body["runtime"]["verified"] is True
+    assert wander_body["runtime"]["provider"] == "mock"
+    assert wander_body["runtime"]["calls"] == 3
+    assert wander_body["runtime"]["completed_calls"] == 3
+    assert wander_body["runtime"]["purposes"] == [
+        "candidate_synthesis",
+        "evidence",
+        "critic",
+    ]
 
     metrics = await client.get("/metrics")
     assert metrics.status_code == 200
@@ -236,7 +245,7 @@ async def test_knowledge_seed_wander_and_wonder_flow(
     assert explored.json()["evaluation"]["evidence"]["supporting_evidence"] == []
     assert explored.json()["evaluation"]["evidence"]["uncertainty"] >= 0.8
     runtime_sessions = await container.repositories.runtime_sessions.list(offset=0, limit=10)
-    assert len(runtime_sessions) == 3
+    assert len(runtime_sessions) == 6
     assert all(str(value.wander_session_id) == session_id for value in runtime_sessions)
     assert all(value.status.value == "closed" for value in runtime_sessions)
     assert all(value.cost["runtime_calls"] == 1 for value in runtime_sessions)
@@ -285,7 +294,7 @@ async def test_knowledge_seed_wander_and_wonder_flow(
         offset=0,
         limit=10,
     )
-    assert all(value.wander_session_id is None for value in stored_runtime_sessions)
+    assert all(str(value.wander_session_id) != session_id for value in stored_runtime_sessions)
 
 
 @pytest.mark.asyncio

@@ -185,20 +185,24 @@ class DeepEvaluationService:
         context: list[KnowledgeItem],
         *,
         max_runtime_calls: int = 3,
+        include_explorer: bool = True,
     ) -> DeepEvaluationResult:
         explorer_output: ExplorerOutput | None = None
-        if max_runtime_calls >= 1:
+        calls_used = 0
+        if include_explorer and max_runtime_calls >= 1:
             with suppress(RuntimeErrorBase):
                 explorer_output = await self.explorer.explore(candidate, context)
-        if max_runtime_calls >= 2:
+            calls_used += 1
+        if max_runtime_calls - calls_used >= 1:
             evidence_output = await self.evidence.collect(candidate, context)
+            calls_used += 1
         else:
             evidence_output = EvidenceOutput(
                 uncertainty=1.0,
                 status=EvaluationStatus.FAILED,
                 error="runtime_budget_exhausted",
             )
-        if max_runtime_calls >= 3:
+        if max_runtime_calls - calls_used >= 1:
             critic_output = await self.critic.critique(candidate, evidence_output)
         else:
             critic_output = CriticOutput(

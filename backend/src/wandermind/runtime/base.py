@@ -107,6 +107,9 @@ class AgentRuntimeAdapter(ABC):
     async def close_session(self, session: RuntimeSession) -> None:
         raise NotImplementedError
 
+    async def close(self) -> None:
+        return None
+
 
 async def run_with_retry(
     adapter: AgentRuntimeAdapter,

@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
 
 from wandermind.application.graph_service import GraphView
+from wandermind.application.runtime_summary import RuntimeSummary
 from wandermind.models import (
     Candidate,
     Feedback,
@@ -81,6 +82,7 @@ class WanderRunResponse(BaseModel):
     session: WanderSession
     candidates: list[Candidate]
     wonders: list[Wonder]
+    runtime: RuntimeSummary
 
 
 class FeedbackCreate(BaseModel):

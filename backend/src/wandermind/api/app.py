@@ -46,6 +46,7 @@ def create_app(
             selected_container.scheduler.start()
         yield
         selected_container.scheduler.shutdown()
+        await selected_container.runtime.close()
         if selected_container.database_engine is not None:
             await selected_container.database_engine.dispose()
 

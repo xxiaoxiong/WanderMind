@@ -45,6 +45,10 @@ stateDiagram-v2
 
 ## 认知流水线
 
+主漫游不会把本地算子结果直接冒充 Agent 结果。算子先生成可解释草稿，`CandidateSynthesizer` Protocol 再通过配置的 Runtime 生成有来源约束的候选；达到深探阈值时，`CandidateReviewer` 通过独立 Evidence 与 Critic Session 校验。Cognitive Core 只依赖 Protocol，具体 Runtime 编排位于 Application 层。Runtime 失败会保留确定性草稿并记录降级原因，不会伪造成功轨迹。
+
+质量 Guard 作用于单个 Candidate；引擎继续尝试未访问的唯一知识对，直到候选/步数/时间/Runtime 预算耗尽。除知识不足、人工停止和执行失败外，正常搜索耗尽以 `completed` 结束。
+
 1. Seed：显式输入；没有 Pending Seed 时可从最新知识创建 Recent Seed。
 2. Patch：同时按 domain、project、topic、temporal 与确定性 embedding cluster 建立多维分区；Item 可属于多个 Patch，用质心距离 O(n·d) 估算一致性。
 3. Retrieval：词法标题锚点与语义距离共同排序，再按分位点切分 near / moderate / remote / very-remote。
@@ -71,7 +75,7 @@ sequenceDiagram
     A-->>A: merge result and confidence
 ```
 
-Explorer、Evidence、Critic 使用独立 Runtime Session，并在成功或失败后关闭。候选为中文时 Runtime 输出中文可读字段。Evidence 引用必须来自输入 Context 的精确 `source_ref` 白名单；缺少或出现未知引用时会清空支持/反证文本并提高不确定性。Critic 失败默认 reject。
+Candidate Synthesis、Explorer、Evidence、Critic 使用独立 Runtime Session，并在成功或失败后关闭。候选为中文时 Runtime 输出中文可读字段。Evidence 引用必须来自输入 Context 的精确 `source_ref` 白名单；缺少或出现未知引用时会清空支持/反证文本并提高不确定性。Critic 失败默认 reject。
 
 ## 数据与持久化
 
@@ -92,7 +96,7 @@ PostgreSQL 使用 pgvector；SQLite 自动退化为 JSON 向量，便于测试�
 
 ## API 与流式策略
 
-`POST /wander` 在当前进程内完成一次短预算运行并返回完整结果；`GET /wander/{id}/stream` 以 SSE 回放结构化 Trace。这保证 V0.1 的确定性与断线重放，但不是逐 token 推理流。长期运行应迁移到持久化队列和实时事件总线，见限制文档。
+`POST /wander` 在当前进程内完成一次预算运行并返回结果及脱敏 Runtime 摘要；`GET /wander/{id}/stream` 以 SSE 回放结构化 Trace。这保证断线重放，但不是逐 token 推理流。长期运行应迁移到持久化队列和实时事件总线，见限制文档。
 
 ## 安全不变量
 

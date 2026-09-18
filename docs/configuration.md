@@ -68,6 +68,8 @@ WANDERMIND_ACCESS_PASSWORD=<generate-a-long-random-value>
 
 ## Runtime
 
+主 Wander 在生成 Candidate 时至少使用一次配置的 Runtime；达到质量阈值且剩余预算不少于两次时，再分别执行 Evidence 与 Critic。`max_runtime_calls=3` 可覆盖一轮完整的综合、证据和批判；交互前端默认使用 6 次预算，以便首个候选未通过时继续尝试。
+
 ### Mock
 
 默认 Mock 返回满足 JSON Schema 的确定性结果，适合开发、CI、离线 Demo 和故障注入。
@@ -91,6 +93,8 @@ WANDERMIND_RUNTIME_CWD=/absolute/readable/path
 `workspace-write` 在 Adapter 构造时默认关闭，即使 RuntimeTask 请求写权限也会被拒绝。
 
 ### OpenAI-compatible / Agnes
+
+Render Blueprint 的线上实例使用此 Adapter 和 Agnes 模型，不应标记为 Codex。`POST /wander` 返回的 `runtime.provider` 与 `runtime.model` 是实际调用证据。
 
 ```dotenv
 WANDERMIND_RUNTIME_ADAPTER=openai

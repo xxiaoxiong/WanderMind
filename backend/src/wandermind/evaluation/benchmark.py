@@ -146,6 +146,15 @@ async def run_benchmark(
         bool(result.wonder_count and len(set(case_by_id[result.id].domains)) > 1)
         for result in interesting_cases
     )
+    runtime_sessions = await container.repositories.runtime_sessions.list(
+        offset=0,
+        limit=100_000,
+    )
+    runtime_calls = sum(
+        int(value)
+        for session in runtime_sessions
+        if isinstance((value := session.cost.get("runtime_calls")), int | float)
+    )
     metrics = BenchmarkMetrics(
         wonder_hit_proxy=sum(bool(result.wonder_count) for result in interesting_cases)
         / max(1, len(interesting_cases)),
@@ -162,7 +171,7 @@ async def run_benchmark(
         / max(1, len(duplicate_cases)),
         cross_domain_yield=cross_domain_hits / max(1, len(interesting_cases)),
         average_candidates=mean(result.candidate_count for result in case_results),
-        runtime_calls=0,
+        runtime_calls=runtime_calls,
     )
     return BenchmarkReport(
         dataset_size=len(knowledge),

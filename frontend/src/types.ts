@@ -110,6 +110,20 @@ export interface WanderRunResponse {
   session: WanderSession;
   candidates: Candidate[];
   wonders: Wonder[];
+  runtime: {
+    configured_adapter: string;
+    provider: string | null;
+    model: string | null;
+    calls: number;
+    completed_calls: number;
+    failed_calls: number;
+    duration_seconds: number;
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    purposes: string[];
+    verified: boolean;
+  };
 }
 
 export interface DeepExploreResponse {

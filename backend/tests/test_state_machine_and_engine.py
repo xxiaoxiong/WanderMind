@@ -110,7 +110,7 @@ async def test_wander_records_patch_switches_and_honors_switch_budget() -> None:
         if step.action in {"patch_switch", "local_wander"}
     ]
 
-    assert len(result.candidates) <= 3
+    assert 2 <= len(result.candidates) <= 3
     assert sum(step.action == "patch_switch" for step in movement_steps) <= 1
     assert any(step.metadata.get("movement") == "controlled_remote_jump" for step in movement_steps)
 

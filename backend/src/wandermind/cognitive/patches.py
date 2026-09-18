@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Collection
 
 from wandermind.cognitive.embedding import cosine_distance
 from wandermind.models import KnowledgeItem, KnowledgePatch, PatchMembership, Seed
@@ -111,7 +112,7 @@ class PatchBuilder:
 
 
 def marginal_novelty_gain(
-    visited_ids: set[object],
+    visited_ids: Collection[object],
     candidate_items: list[KnowledgeItem],
     semantic_difference: float,
 ) -> float:

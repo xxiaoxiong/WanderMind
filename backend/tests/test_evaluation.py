@@ -65,6 +65,7 @@ async def test_benchmark_report_and_regression_gate() -> None:
     assert report.dataset_size == 3
     assert report.case_count == 1
     assert report.cases[0].candidate_count >= 1
+    assert report.metrics.runtime_calls >= 1
     assert regression_failures(report, {"randomness_rate": 1.0}) == []
 
 
