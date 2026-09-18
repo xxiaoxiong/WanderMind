@@ -42,6 +42,7 @@
 - [x] 本机真实 Codex 主流程通过：`candidate_synthesis -> candidate_review` 2/2 调用完成，严格 JSON Schema 有效，Runtime verified，268.968 秒。
 - [x] 主流程每个完整候选由 3 次 Runtime 降为 2 次；前端默认最多 4 次调用，可完整尝试两个候选，并显示等待秒数。
 - [x] Review 辅助晋级仍受 redundancy / arbitrariness / hallucination guard 约束；12-case 回归中明显、随机、重复错误呈现率均为 0。
+- [x] Runtime 可覆盖 Hash Embedding 的弱关联假阴性，并把低风险 `revise` 修订为带不确定性的可验证假设；荒诞 Seed、重复、幻觉风险与 reject 仍禁止呈现。
 - [ ] Render 线上连续真实任务验收（部署本次提交后执行并记录）。
 
 ## 需要仓库所有者完成

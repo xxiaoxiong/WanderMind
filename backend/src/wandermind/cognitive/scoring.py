@@ -151,7 +151,7 @@ class WonderScorer:
             max(
                 1.0 - association.strength,
                 0.8 * _has_obviousness_markers(seed.content),
-                _has_arbitrary_framing(seed.content),
+                has_arbitrary_framing(seed.content),
             )
         )
         hallucination_risk = _clamp(
@@ -285,7 +285,7 @@ def _has_obviousness_markers(text: str) -> float:
     return float(any(marker in lowered for marker in markers))
 
 
-def _has_arbitrary_framing(text: str) -> float:
+def has_arbitrary_framing(text: str) -> float:
     lowered = text.casefold()
     markers = (
         "secretly",

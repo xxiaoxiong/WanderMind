@@ -206,14 +206,14 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
                     "Domain-specific delays may make the control loops behave differently."
                 ],
                 source_refs=[],
-                uncertainty=0.9,
+                uncertainty=0.6,
                 weaknesses=["The transfer still requires an operational comparison."],
                 obviousness=0.2,
                 factual_risk=0.3,
                 alternative_explanations=[
                     "The overlap may reflect generic resource-allocation language."
                 ],
-                verdict="pass",
+                verdict="revise",
             ).model_dump(mode="json"),
             "explorer": ExplorerOutput(
                 expanded_idea="The connection can be explored as a testable structural analogy.",

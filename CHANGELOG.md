@@ -19,6 +19,7 @@
 - Cognitive benchmark Runtime-call metrics now come from persisted Runtime sessions instead of a constant placeholder.
 - Main-path evidence and critique now share one independent `candidate_review` call, reducing a complete candidate from three Runtime calls to two.
 - Review-assisted promotion now remains behind redundancy, arbitrariness and hallucination guards; elapsed-time budgeting uses a monotonic clock.
+- A grounded Runtime review may repair a low-risk `revise` result into a caveated testable hypothesis, while explicit arbitrary framing, duplication, hallucination risk and critic rejection still block promotion.
 - Candidate Runtime schemas require every structured field, matching strict Codex output-schema requirements.
 - Wander loading now shows elapsed seconds, and hosted Runtime retries/timeouts are bounded for predictable interaction latency.
 - Render Blueprint now exposes the trial instance without Basic Auth by default; self-hosters can still enable the optional access gate with environment variables.

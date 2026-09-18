@@ -18,7 +18,11 @@ from wandermind.cognitive.runtime_services import (
     CandidateSynthesisResult,
     CandidateSynthesizer,
 )
-from wandermind.cognitive.scoring import ThresholdDecision, WonderScorer
+from wandermind.cognitive.scoring import (
+    ThresholdDecision,
+    WonderScorer,
+    has_arbitrary_framing,
+)
 from wandermind.cognitive.state_machine import CognitiveStateMachine
 from wandermind.models import (
     Candidate,
@@ -399,13 +403,27 @@ class WanderEngine:
                         "runtime budget could not fund an independent candidate review",
                         candidate_ids=[candidate.id],
                     )
+                review_repaired = bool(
+                    review is not None
+                    and review.verdict == "revise"
+                    and review.factual_risk <= 0.4
+                    and review.uncertainty <= 0.65
+                    and review.expanded_idea
+                )
                 review_passed = (
                     self.candidate_reviewer is None
                     or (
                         review is not None
-                        and review.verdict == "pass"
-                        and review.factual_risk < 0.75
+                        and (
+                            (review.verdict == "pass" and review.factual_risk < 0.75)
+                            or review_repaired
+                        )
                     )
+                )
+                runtime_overrides_weak_association = (
+                    synthesis.verified
+                    and review_passed
+                    and not has_arbitrary_framing(seed.content)
                 )
                 review_assisted_surface = (
                     decision is ThresholdDecision.DEEP_EXPLORE
@@ -416,7 +434,10 @@ class WanderEngine:
                 if (
                     (decision is ThresholdDecision.SURFACE or review_assisted_surface)
                     and scores.redundancy < 0.85
-                    and scores.arbitrariness < 0.80
+                    and (
+                        scores.arbitrariness < 0.80
+                        or runtime_overrides_weak_association
+                    )
                     and scores.hallucination_risk < 0.75
                     and review_passed
                 ):
@@ -426,7 +447,9 @@ class WanderEngine:
                         CognitiveState.PERSIST,
                         "promote_candidate",
                         (
-                            "candidate passed independent review after deep exploration"
+                            "candidate was repaired into a low-risk testable hypothesis"
+                            if review_repaired
+                            else "candidate passed independent review after deep exploration"
                             if review_assisted_surface
                             else "candidate passed the configured surface threshold"
                         ),
@@ -469,7 +492,11 @@ class WanderEngine:
                             "score_explanation": score_explanation.model_dump(mode="json"),
                             "runtime_review": review.model_dump(mode="json") if review else None,
                             "promotion_basis": (
-                                "runtime_review" if review_assisted_surface else "score_threshold"
+                                "runtime_revision"
+                                if review_repaired
+                                else "runtime_review"
+                                if review_assisted_surface
+                                else "score_threshold"
                             ),
                         },
                     )
