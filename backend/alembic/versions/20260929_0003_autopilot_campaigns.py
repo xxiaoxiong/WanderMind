@@ -60,9 +60,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(
-        op.f("ix_autopilot_campaigns_status"), table_name="autopilot_campaigns"
-    )
+    op.drop_index(op.f("ix_autopilot_campaigns_status"), table_name="autopilot_campaigns")
     op.drop_index(
         op.f("ix_autopilot_campaigns_current_session_id"),
         table_name="autopilot_campaigns",
