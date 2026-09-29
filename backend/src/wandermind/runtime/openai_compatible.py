@@ -70,9 +70,9 @@ class OpenAICompatibleRuntimeAdapter(AgentRuntimeAdapter):
             self._inflight[session.id] = current_task
         try:
             response = await self._request(task)
-        except asyncio.CancelledError as error:
+        except asyncio.CancelledError:
             session.status = RuntimeSessionStatus.INTERRUPTED
-            raise RuntimeInterruptedError("OpenAI-compatible task was interrupted") from error
+            raise
         finally:
             self._inflight.pop(session.id, None)
 

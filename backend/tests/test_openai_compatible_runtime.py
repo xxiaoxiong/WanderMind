@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import httpx
@@ -111,6 +112,32 @@ async def test_openai_compatible_runtime_rejects_invalid_structured_output() -> 
             session,
             RuntimeTask(prompt="Return an answer", output_schema=SCHEMA),
         )
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_runtime_propagates_task_cancellation() -> None:
+    request_started = asyncio.Event()
+
+    async def handle(_request: httpx.Request) -> httpx.Response:
+        request_started.set()
+        await asyncio.Event().wait()
+        return completion()
+
+    runtime = adapter(httpx.MockTransport(handle))
+    session = await runtime.start_session("explorer")
+    task = asyncio.create_task(
+        runtime.run_task(
+            session,
+            RuntimeTask(prompt="Return an answer", output_schema=SCHEMA),
+        )
+    )
+    await asyncio.wait_for(request_started.wait(), timeout=1)
+
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert session.status.value == "interrupted"
 
 
 @pytest.mark.asyncio
