@@ -16,9 +16,12 @@ const wonder = {
   scores: {
     novelty: 0.82,
     coherence: 0.78,
-    usefulness: 0.71,
+    personal_relevance: 0.71,
     surprise: 0.69,
+    generativity: 0.72,
+    explanatory_power: 0.73,
     evidence_potential: 0.64,
+    cross_domain_value: 0.81,
     redundancy: 0.1,
     arbitrariness: 0.1,
     hallucination_risk: 0.2,
@@ -55,30 +58,51 @@ test("captures a seed and surfaces a structured wonder", async ({ page }) => {
   await page.route("**/api/v1/seeds", async (route) => {
     await route.fulfill({ status: 201, json: { id: "seed-1", content: "How do systems avoid overload?" } });
   });
-  await page.route("**/api/v1/wander", async (route) => {
+  const session = {
+    id: "session-1",
+    seed_id: "seed-1",
+    state: "surface",
+    status: "completed",
+    trace: {
+      steps: [],
+      patches: [],
+      operators: ["analogy"],
+      candidate_ids: ["candidate-1"],
+      final_wonder_ids: ["wonder-1"],
+      stop_reason: "target_wonders_reached",
+    },
+    metadata: {},
+    started_at: "2026-09-14T00:00:00Z",
+    ended_at: "2026-09-14T00:00:01Z",
+    created_at: "2026-09-14T00:00:00Z",
+  };
+  await page.route("**/api/v1/wander/start", async (route) => {
+    await route.fulfill({ status: 202, json: { ...session, status: "pending" } });
+  });
+  await page.route("**/api/v1/wander/session-1/result", async (route) => {
     await route.fulfill({
       json: {
-        session: {
-          id: "session-1",
-          seed_id: "seed-1",
-          state: "surface",
-          status: "completed",
-          trace: {
-            steps: [],
-            patches: [],
-            operators: ["analogy"],
-            candidate_ids: ["candidate-1"],
-            final_wonder_ids: ["wonder-1"],
-            stop_reason: "high_value_found",
-          },
-          created_at: "2026-09-14T00:00:00Z",
-        },
+        session,
         candidates: [{ id: "candidate-1", statement: wonder.statement }],
         wonders: [wonder],
+        runtime: {
+          configured_adapter: "mock",
+          provider: "mock",
+          model: null,
+          calls: 8,
+          completed_calls: 8,
+          failed_calls: 0,
+          duration_seconds: 1.2,
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          purposes: ["candidate_synthesis", "candidate_review"],
+          verified: true,
+        },
       },
     });
   });
-  await page.route("**/api/v1/wander/session-1/stream", async (route) => {
+  await page.route("**/api/v1/wander/session-1/stream?after=*", async (route) => {
     const step = {
       id: "step-1",
       index: 0,
@@ -94,7 +118,7 @@ test("captures a seed and surfaces a structured wonder", async ({ page }) => {
     };
     await route.fulfill({
       contentType: "text/event-stream",
-      body: "event: wander_step\ndata: " + JSON.stringify(step) + "\n\nevent: completed\ndata: {}\n\n",
+      body: "event: wander_step\nid: 0\ndata: " + JSON.stringify(step) + "\n\nevent: completed\ndata: {\"status\":\"completed\",\"stop_reason\":\"target_wonders_reached\",\"wonder_ids\":[\"wonder-1\"],\"patch_ids\":[],\"candidate_count\":1}\n\n",
     });
   });
   await page.route("**/api/v1/wonders/wonder-1/explore", async (route) => {
@@ -154,7 +178,7 @@ test("blocks wandering until the knowledge field has two fragments", async ({ pa
   await page.route("**/api/v1/knowledge?limit=100", async (route) => {
     await route.fulfill({ json: { items: [], offset: 0, limit: 100 } });
   });
-  await page.route("**/api/v1/wander", async (route) => {
+  await page.route("**/api/v1/wander/start", async (route) => {
     wanderRequests += 1;
     await route.fulfill({ status: 500 });
   });

@@ -464,20 +464,14 @@ class WanderEngine:
                     and review.uncertainty <= 0.65
                     and review.expanded_idea
                 )
-                review_passed = (
-                    self.candidate_reviewer is None
-                    or (
-                        review is not None
-                        and (
-                            (review.verdict == "pass" and review.factual_risk < 0.75)
-                            or review_repaired
-                        )
+                review_passed = self.candidate_reviewer is None or (
+                    review is not None
+                    and (
+                        (review.verdict == "pass" and review.factual_risk < 0.75) or review_repaired
                     )
                 )
                 runtime_overrides_weak_association = (
-                    synthesis.verified
-                    and review_passed
-                    and not has_arbitrary_framing(seed.content)
+                    synthesis.verified and review_passed and not has_arbitrary_framing(seed.content)
                 )
                 review_assisted_surface = (
                     decision is ThresholdDecision.DEEP_EXPLORE
@@ -488,10 +482,7 @@ class WanderEngine:
                 if (
                     (decision is ThresholdDecision.SURFACE or review_assisted_surface)
                     and scores.redundancy < 0.85
-                    and (
-                        scores.arbitrariness < 0.80
-                        or runtime_overrides_weak_association
-                    )
+                    and (scores.arbitrariness < 0.80 or runtime_overrides_weak_association)
                     and scores.hallucination_risk < 0.75
                     and review_passed
                 ):
@@ -522,7 +513,10 @@ class WanderEngine:
                         ),
                         why_interesting=(
                             "它在保持不确定性的同时建立了可解释、可验证的跨领域连接。"
-                            if any("\u4e00" <= character <= "\u9fff" for character in candidate.statement)
+                            if any(
+                                "\u4e00" <= character <= "\u9fff"
+                                for character in candidate.statement
+                            )
                             else "It forms an explainable, testable cross-domain connection while preserving uncertainty."
                         ),
                         source_items=candidate.source_items,

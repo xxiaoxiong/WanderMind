@@ -30,11 +30,7 @@ def summarize_runtime(
     completed_calls = max(0, calls - failed_calls)
     providers = list(dict.fromkeys(session.provider for session in sessions))
     models = list(
-        dict.fromkeys(
-            model
-            for session in sessions
-            if (model := _model(session)) is not None
-        )
+        dict.fromkeys(model for session in sessions if (model := _model(session)) is not None)
     )
     return RuntimeSummary(
         configured_adapter=configured_adapter,

@@ -130,7 +130,9 @@ async def test_coordinator_recovers_pending_session() -> None:
         ("Software", "Software systems use local backpressure and redundancy."),
     ]:
         await container.ingestion.ingest_text(content, title=title)
-    seed = await container.repositories.seeds.create(Seed(content="Find a robust shared mechanism."))
+    seed = await container.repositories.seeds.create(
+        Seed(content="Find a robust shared mechanism.")
+    )
     session = await container.wander_engine.create_session(
         seed,
         WanderBudget(max_candidates=1, max_runtime_calls=2, time_budget_seconds=10),

@@ -107,9 +107,7 @@ class InMemoryFeedbackRepository(InMemoryStore[Feedback]):
 class InMemoryRuntimeSessionRepository(InMemoryStore[RuntimeSession]):
     async def list_for_wander(self, wander_session_id: UUID) -> builtins.list[RuntimeSession]:
         return [
-            item
-            for item in self._items.values()
-            if item.wander_session_id == wander_session_id
+            item for item in self._items.values() if item.wander_session_id == wander_session_id
         ]
 
 

@@ -46,8 +46,7 @@ async def run(executable: str, cwd: str, timeout_seconds: float) -> dict[str, ob
         return {
             "success": True,
             "provider": session.provider,
-            "schema_valid": result.structured
-            == {"status": "ok", "runtime": "codex-app-server"},
+            "schema_valid": result.structured == {"status": "ok", "runtime": "codex-app-server"},
             "duration_seconds": round(time.perf_counter() - started, 3),
         }
     finally:

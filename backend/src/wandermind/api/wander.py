@@ -124,9 +124,7 @@ async def stream_wander_session(
                         {
                             "status": current.status.value,
                             "stop_reason": current.trace.stop_reason,
-                            "wonder_ids": [
-                                str(value) for value in current.trace.final_wonder_ids
-                            ],
+                            "wonder_ids": [str(value) for value in current.trace.final_wonder_ids],
                             "patch_ids": [str(value) for value in current.trace.patches],
                             "candidate_count": len(current.trace.candidate_ids),
                         },
