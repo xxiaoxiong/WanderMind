@@ -17,9 +17,10 @@ WanderMind 是一个**可控、可解释、可评估**的认知漫游引擎。�
 - 多维评分、冗余/任意性/幻觉风险惩罚、阈值化静默机制。
 - 可替换 RuntimeAdapter；Mock、Codex App Server、OpenAI-compatible 适配器及会话、耗时、调用成本持久化。
 - Explorer / Evidence / Independent Critic 深度评估；无引用时绝不伪造证据。
+- 持久 Autopilot 主管循环：连续发起深度探索、重启恢复、失败退避，并把达标 Wonder 回灌为下一轮可用知识。
 - APScheduler 孵化、跨时间配对、近期知识 Seed、Re-Wonder 血缘。
 - FastAPI + SQLAlchemy + PostgreSQL/pgvector；SQLite 可用于本地与测试。
-- React 19 四页 UI：Inbox、Wander、Wonders、Wonder Detail；支持中英文与亮/暗主题持久化切换。
+- React 19 五类 UI：Inbox、Wander、Wonders、Wonder Detail、Autopilot；支持中英文与亮/暗主题持久化切换。
 - 后端单测/集成测试、前端单测、Playwright E2E、认知基准和 1000×100 压力冒烟。
 
 ## 架构
@@ -74,7 +75,7 @@ Compose 会启动 pgvector/PostgreSQL、执行 Alembic 迁移、启动 API 与 N
 2. 打开 `/health` 检查服务状态。
 3. 如需私有单用户部署，可自行设置 `WANDERMIND_ACCESS_USERNAME` 与非空的 `WANDERMIND_ACCESS_PASSWORD` 启用可选 Basic Auth。
 
-Render 免费 Web Service 会在空闲时休眠，免费 PostgreSQL 数据库会在创建 30 天后到期，因此只适合试用。长期保存个人知识时应切换付费数据库并配置备份。完整步骤见 `docs/deployment.md`。
+仓库的 GitHub Actions 每 10 分钟探测 Autopilot 状态，用于降低免费 Web Service 因无入站流量休眠的概率；它不是可用性承诺。Render 免费 PostgreSQL 会在创建 30 天后到期，因此只适合试用。真正长期无人值守运行应切换付费 Web Service 与付费数据库并配置备份。完整步骤见 `docs/deployment.md`。
 
 ## 本地开发
 
@@ -145,6 +146,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/demo.ps1
 | POST | `/api/v1/wonders/{id}/rewonder` | 用新知识生成后继 Wonder |
 | DELETE | `/api/v1/wonders/{id}` | 删除 Wonder 及其反馈 |
 | POST | `/api/v1/incubation/run` | 手动触发静默孵化 |
+| GET | `/api/v1/autopilot/status` | 获取持久探索、当前 Session、累计成果与主管状态 |
+| POST | `/api/v1/autopilot/start` | 创建或更新目标并启动连续探索 |
+| POST | `/api/v1/autopilot/resume` | 从持久检查点继续探索 |
+| POST | `/api/v1/autopilot/pause` | 取消当前轮并在检查点暂停 |
+| POST | `/api/v1/autopilot/stop` | 停止连续探索，保留全部历史成果 |
 
 错误统一为 `{"error":{"code","message","details","retryable"}}`。OpenAPI 是接口契约的最终权威。
 
@@ -160,6 +166,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/demo.ps1
 - `WANDERMIND_LLM_BASE_URL` / `WANDERMIND_LLM_API_KEY` / `WANDERMIND_LLM_MODEL`：OpenAI-compatible 模型端点、密钥与模型名。
 - `WANDERMIND_WONDER_THRESHOLD`：呈现阈值。
 - `WANDERMIND_ENABLE_SCHEDULER`：后台孵化。
+- `WANDERMIND_ENABLE_AUTOPILOT`：启动持久连续探索主管；单实例部署使用。
+- `WANDERMIND_AUTOPILOT_POLL_INTERVAL_SECONDS` / `WANDERMIND_AUTOPILOT_CYCLE_DELAY_SECONDS`：检查与轮次间隔。
+- `WANDERMIND_AUTOPILOT_OBJECTIVE`：无人监督探索的长期目标。
 - `WANDERMIND_MAX_REQUEST_BYTES`：API 请求上限。
 
 完整说明与安全边界见 `docs/configuration.md`。

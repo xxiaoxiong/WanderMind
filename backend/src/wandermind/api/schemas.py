@@ -85,6 +85,11 @@ class WanderRunResponse(BaseModel):
     runtime: RuntimeSummary
 
 
+class AutopilotStart(BaseModel):
+    objective: str | None = Field(default=None, min_length=1, max_length=20_000)
+    budget: WanderBudget | None = None
+
+
 class FeedbackCreate(BaseModel):
     action: FeedbackAction
     value: float | None = Field(default=None, ge=-1.0, le=1.0)

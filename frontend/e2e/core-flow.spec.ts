@@ -208,6 +208,65 @@ test("lists curated wonders", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Why?" })).toHaveAttribute("href", "#/wonders/wonder-1");
 });
 
+test("shows and controls cumulative Autopilot progress", async ({ page }) => {
+  let status = "active";
+  const snapshot = () => ({
+    campaign: {
+      id: "campaign-1",
+      objective: "Continuously challenge assumptions",
+      status,
+      current_session_id: null,
+      cycles_started: 12,
+      cycles_completed: 11,
+      total_candidates: 73,
+      total_wonders: 15,
+      total_runtime_calls: 88,
+      promoted_knowledge_count: 9,
+      consecutive_failures: 0,
+      started_at: "2026-09-29T00:00:00Z",
+      last_cycle_started_at: "2026-09-29T00:11:00Z",
+      last_cycle_completed_at: "2026-09-29T00:12:00Z",
+      next_cycle_at: "2026-09-29T00:13:00Z",
+      last_error: null,
+      metadata: {},
+    },
+    current_session: null,
+    current_seed: null,
+    current_runtime: {
+      configured_adapter: "openai",
+      provider: null,
+      model: null,
+      calls: 0,
+      completed_calls: 0,
+      failed_calls: 0,
+      duration_seconds: 0,
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      purposes: [],
+      verified: false,
+    },
+    latest_wonders: [],
+    knowledge_count: 34,
+    generated_knowledge_count: 9,
+    worker_running: true,
+  });
+  await page.route("**/api/v1/autopilot/status", async (route) => {
+    await route.fulfill({ json: snapshot() });
+  });
+  await page.route("**/api/v1/autopilot/pause", async (route) => {
+    status = "paused";
+    await route.fulfill({ json: snapshot() });
+  });
+
+  await page.goto("/#/autopilot");
+
+  await expect(page.getByText("73")).toBeVisible();
+  await expect(page.getByText("supervisor online")).toBeVisible();
+  await page.getByRole("button", { name: "Pause after checkpoint" }).click();
+  await expect(page.getByRole("button", { name: "Resume" })).toBeVisible();
+});
+
 test("persists Chinese and light appearance preferences", async ({ page }) => {
   await page.addInitScript(() => {
     const storage = Reflect.get(globalThis, "localStorage") as {

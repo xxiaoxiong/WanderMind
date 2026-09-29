@@ -14,7 +14,7 @@
 |---|---|---|---|
 | Domain | `models` | 实体、枚举、不变量 | FastAPI、SQLAlchemy、Codex |
 | Cognitive | `cognitive` | 检索、Patch、算子、状态机、评分、Engine | FastAPI、具体 ORM |
-| Application | `application` | 深探、反馈、孵化、依赖装配 | 路由细节 |
+| Application | `application` | 深探、反馈、孵化、Autopilot 持久循环、依赖装配 | 路由细节 |
 | Runtime | `runtime` | 会话生命周期、重试、中断、结构化输出 | 业务仓储实现 |
 | Repository | `repositories` | Protocol 与 Memory/SQL 实现 | API |
 | Infrastructure | `infrastructure` | 配置、ORM、数据库、日志、安全 | UI |
@@ -89,6 +89,7 @@ sequenceDiagram
 - `wonders`：最终陈述、证据、问题、血缘与用户状态。
 - `feedback`：interesting/save/continue/obvious/random/wrong。
 - `runtime_sessions`：记录 Provider、用途、外部会话 ID、关联 Wander、生命周期、耗时与调用成本。
+- `autopilot_campaigns`：长期目标、控制状态、当前 Session、累计质量产物、失败退避和下一轮检查点。
 
 Idea Graph 通过 Application Service 校验端点存在性，并提供邻居、血缘、证据/反证与矛盾查询；删除 Knowledge 时同步清理相连边。
 
@@ -103,6 +104,8 @@ Engine 在每个结构化 Step 后写入 Session checkpoint。`GET /wander/{id}/
 深度模式不在首个 Wonder 后退出：它至少比较 `min_candidates` 个候选，争取达到 `target_wonders`，受无改进耐心、步骤、候选、Runtime 调用和总时长多重预算约束，最后按总分与置信度重排所有已呈现结果。
 
 当前协调器面向单实例部署；进程重启会重新提交 `pending/running` Session，并跳过已持久化候选所对应的知识对。多实例部署仍应升级为带任务租约的外部持久队列，见限制文档。
+
+`AutopilotSupervisor` 在上述有限且可审计的 Session 外再包一层持久控制循环：选择尝试次数较少的新旧知识对，轮换六类探索策略，把通过阈值的 Wonder 回灌为 `insight`，失败时指数退避而不是结束 Campaign。控制 API 可随时读取进展并在检查点暂停、继续或停止；进程重启只丢失供应商内部尚未返回的一次调用，不丢失已提交的 Step、Candidate、Wonder 与累计计数。
 
 ## 安全不变量
 

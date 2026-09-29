@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from wandermind.application.autopilot_service import AutopilotSupervisor
 from wandermind.application.candidate_runtime_service import (
     CandidateReviewOutput,
     CandidateSynthesisOutput,
@@ -39,6 +40,7 @@ from wandermind.cognitive.scoring import ScoreWeights, ThresholdPolicy, WonderSc
 from wandermind.infrastructure.config import Settings
 from wandermind.infrastructure.database import create_engine, create_session_factory
 from wandermind.infrastructure.tracked_runtime import TrackedRuntimeAdapter
+from wandermind.models import default_autopilot_budget
 from wandermind.repositories import InMemoryRepositoryBundle, SQLAlchemyRepositoryBundle
 from wandermind.repositories.protocols import RepositoryBundle
 from wandermind.runtime import (
@@ -66,6 +68,7 @@ class ApplicationContainer:
     incubation: IncubationService
     rewonder: ReWonderService
     scheduler: IncubationScheduler
+    autopilot: AutopilotSupervisor
     database_engine: AsyncEngine | None = None
 
 
@@ -132,11 +135,24 @@ def build_container(
     )
     incubation = IncubationService(selected_repositories, wander_engine)
     wander_coordinator = WanderCoordinator(selected_repositories, wander_engine)
+    ingestion = IngestionService(selected_repositories.knowledge, embedding)
+    autopilot = AutopilotSupervisor(
+        selected_repositories,
+        wander_coordinator,
+        ingestion,
+        configured_runtime=settings.runtime_adapter,
+        auto_start=settings.enable_autopilot,
+        objective=settings.autopilot_objective,
+        budget=default_autopilot_budget(),
+        poll_interval_seconds=settings.autopilot_poll_interval_seconds,
+        cycle_delay_seconds=settings.autopilot_cycle_delay_seconds,
+        promotion_threshold=settings.wonder_threshold,
+    )
     return ApplicationContainer(
         settings=settings,
         repositories=selected_repositories,
         embedding=embedding,
-        ingestion=IngestionService(selected_repositories.knowledge, embedding),
+        ingestion=ingestion,
         wander_engine=wander_engine,
         wander_coordinator=wander_coordinator,
         runtime=selected_runtime,
@@ -153,6 +169,7 @@ def build_container(
             incubation,
             interval_minutes=settings.incubation_interval_minutes,
         ),
+        autopilot=autopilot,
         database_engine=database_engine,
     )
 

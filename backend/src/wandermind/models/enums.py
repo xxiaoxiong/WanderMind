@@ -116,6 +116,12 @@ class SessionStatus(StrEnum):
     FAILED = "failed"
 
 
+class AutopilotStatus(StrEnum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    STOPPED = "stopped"
+
+
 class RuntimeSessionStatus(StrEnum):
     ACTIVE = "active"
     COMPLETED = "completed"

@@ -27,6 +27,10 @@
 | `WANDERMIND_SCORE_WEIGHTS` | JSON | 八个正向维度与三个风险罚分的完整权重集 |
 | `WANDERMIND_ENABLE_SCHEDULER` | false | 启动孵化计划任务 |
 | `WANDERMIND_INCUBATION_INTERVAL_MINUTES` | 360 | 孵化周期 |
+| `WANDERMIND_ENABLE_AUTOPILOT` | false | 启动持久连续探索主管；每个部署只能有一个 leader |
+| `WANDERMIND_AUTOPILOT_POLL_INTERVAL_SECONDS` | 5 | 检查当前轮状态与恢复中断任务的间隔 |
+| `WANDERMIND_AUTOPILOT_CYCLE_DELAY_SECONDS` | 5 | 成功轮次持久化后开始下一轮前的间隔 |
+| `WANDERMIND_AUTOPILOT_OBJECTIVE` | 内置质量目标 | 长期探索目标，最多 20000 字符 |
 | `WANDERMIND_MAX_REQUEST_BYTES` | 2100000 | API 请求上限 |
 | `WANDERMIND_AUTO_CREATE_SCHEMA` | true | 本地自动建表；生产建议 false + Alembic |
 
@@ -118,6 +122,12 @@ API key 不会写入 Runtime Session、usage 或日志。生产环境应使用�
 ## Scheduler
 
 计划任务只在单进程部署中安全。多副本部署必须确保只有一个 scheduler leader，否则会重复孵化。V0.1 没有分布式锁。
+
+## Autopilot
+
+Autopilot 把每轮有限预算 Wander 串成持久循环。Campaign、当前 Session、累计 Candidate/Wonder/Runtime 数、失败次数和下一轮时间均写入数据库；进程重启后会恢复 `pending/running` Session，终态轮次会先结算再继续。通过质量阈值的 Wonder 会以 `insight` 类型回灌知识场，并创建 `derived_from` 图边，使后续轮次能够组合新旧知识。
+
+生产部署不得同时启用旧 Scheduler 和 Autopilot，以免形成两套无协调的后台写入。当前实现面向单实例；多副本必须增加数据库租约或外部队列后再启用。
 
 ## 限制
 

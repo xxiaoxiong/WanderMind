@@ -1,6 +1,6 @@
 # 线上部署
 
-当前试用实例：<https://wandermind-p6jg.onrender.com>。2026-09-15 验收时，Docker 构建、Alembic `0001 -> 0002`、公开 UI 与 `/health` 均通过；访问无需登录。
+当前试用实例：<https://wandermind-p6jg.onrender.com>。公开 UI 与 `/health` 无需登录；生产镜像启动时执行全部 Alembic 迁移。
 
 ## Render Blueprint
 
@@ -12,6 +12,7 @@
 4. 在 Web Service 的 Environment 页面以 Secret 添加 `WANDERMIND_LLM_API_KEY`；Blueprint 已配置 `openai`、Agnes APIHub URL 与 `agnes-2.5-flash`，但不会保存真实密钥。
 5. 直接访问服务 URL。
 6. 导入至少三条非敏感测试知识并执行 Wander；确认响应 `runtime.verified=true`、provider 为 `openai-compatible`、模型为预期 Agnes 模型、`calls >= 1`，且前端展示 Runtime 证据。若候选达到阈值，一轮完整调用应包含 `candidate_synthesis` 与 `candidate_review`。
+7. 打开 `/#/autopilot`，确认 Campaign 为 `active`、主管在线，并观察至少两个完整轮次的累计 Candidate、Wonder 与回灌知识增长。
 
 线上 Blueprint 没有 Codex App Server 凭据，实际使用 Agnes APIHub；本机 Codex Adapter 可通过 `python backend/scripts/run_live_codex_smoke.py --executable <codex-path>` 验证协议，并通过 `python backend/scripts/run_live_codex_wander.py --executable <codex-path>` 验证完整主流程。不要把 OpenAI-compatible/Agnes 调用描述为 Codex 调用。
 
@@ -19,10 +20,11 @@ Blueprint 将 Render 的 `connectionString` 注入 `WANDERMIND_DATABASE_URL`。�
 
 ## 免费层边界
 
-- 免费 Web Service 空闲时会休眠，首次请求可能需要等待冷启动。
+- 免费 Web Service 在 15 分钟没有入站流量后会休眠；仓库的 `keepalive.yml` 每 10 分钟访问 Autopilot 状态以降低休眠概率，并验证主管任务仍在线。
 - 免费 PostgreSQL 数据库创建 30 天后到期，不适合长期保存个人知识。
-- 长期使用应升级数据库计划、启用平台备份，并定期验证 `pg_dump` 恢复。
-- Scheduler 仅允许一个 Web Service 副本；扩容前设置 `WANDERMIND_ENABLE_SCHEDULER=false` 或实现 leader election。
+- GitHub Actions 定时任务可能因仓库长期无活动、平台延迟或配额停止，Render 也可能限制异常服务端流量，因此免费层保活不等于长期运行 SLA。
+- 长期使用应升级 Web Service 与数据库计划、启用平台备份，并定期验证 `pg_dump` 恢复。
+- Autopilot 仅允许一个 Web Service 副本；扩容前关闭它或实现数据库租约/leader election。线上 Blueprint 已关闭旧 Scheduler。
 
 ## 安全
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from wandermind.cognitive.engine import WanderEngine
@@ -35,8 +36,14 @@ class WanderCoordinator:
                 await self.repositories.sessions.update(session)
                 self.submit(session.id)
 
-    async def create(self, seed: Seed, budget: WanderBudget) -> WanderSession:
-        session = await self.engine.create_session(seed, budget)
+    async def create(
+        self,
+        seed: Seed,
+        budget: WanderBudget,
+        *,
+        metadata: dict[str, Any] | None = None,
+    ) -> WanderSession:
+        session = await self.engine.create_session(seed, budget, metadata=metadata)
         self.submit(session.id)
         return session
 

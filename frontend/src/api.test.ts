@@ -70,6 +70,41 @@ describe("api client", () => {
     });
   });
 
+  it("controls and reads the persistent Autopilot campaign", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({ campaign: { status: "active" }, worker_running: true }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.getAutopilotStatus();
+    await api.startAutopilot("Keep discovering testable mechanisms");
+    await api.pauseAutopilot();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/autopilot/status",
+      expect.objectContaining({ headers: { "content-type": "application/json" } }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/autopilot/start",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ objective: "Keep discovering testable mechanisms" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "/api/v1/autopilot/pause",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
   it("parses live progress and completion events", async () => {
     vi.stubGlobal(
       "fetch",

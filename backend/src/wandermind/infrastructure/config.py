@@ -54,6 +54,17 @@ class Settings(BaseSettings):
     )
     enable_scheduler: bool = False
     incubation_interval_minutes: int = Field(default=360, ge=5, le=43_200)
+    enable_autopilot: bool = False
+    autopilot_poll_interval_seconds: float = Field(default=5.0, ge=1.0, le=300.0)
+    autopilot_cycle_delay_seconds: float = Field(default=5.0, ge=0.0, le=3_600.0)
+    autopilot_objective: str = Field(
+        default=(
+            "持续检查知识场中的隐含假设、矛盾、跨领域机制和二阶后果;产出可验证、"
+            "有反证路径且不重复既有成果的高质量新洞见。"
+        ),
+        min_length=1,
+        max_length=20_000,
+    )
     max_request_bytes: int = Field(default=2_100_000, ge=1_024, le=50_000_000)
     auto_create_schema: bool = True
 

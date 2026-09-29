@@ -1,4 +1,5 @@
 import type {
+  AutopilotSnapshot,
   ApiErrorEnvelope,
   DeepExploreResponse,
   KnowledgeItem,
@@ -54,6 +55,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getAutopilotStatus(): Promise<AutopilotSnapshot> {
+    return request("/autopilot/status");
+  },
+  startAutopilot(objective?: string): Promise<AutopilotSnapshot> {
+    return request("/autopilot/start", {
+      method: "POST",
+      body: JSON.stringify({ objective: objective || null }),
+    });
+  },
+  resumeAutopilot(): Promise<AutopilotSnapshot> {
+    return request("/autopilot/resume", { method: "POST" });
+  },
+  pauseAutopilot(): Promise<AutopilotSnapshot> {
+    return request("/autopilot/pause", { method: "POST" });
+  },
+  stopAutopilot(): Promise<AutopilotSnapshot> {
+    return request("/autopilot/stop", { method: "POST" });
+  },
   createKnowledge(payload: {
     title?: string;
     content: string;

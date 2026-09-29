@@ -15,8 +15,8 @@
 | 8 Scoring | 完成 | 多维评分、三类惩罚、sweet spot、阈值与解释 |
 | 9 Runtime | 完成 | 主漫游候选综合/统一独立审查均接入 Adapter；Mock/Codex/OpenAI-compatible；会话与成本持久化 |
 | 10 Explorer/Evidence/Critic | 完成 | 独立会话、无引用不造证据、失败默认 reject |
-| 11 Incubation/Re-Wonder | 完成 | Scheduler、老/新配对、静默、Recent Seed、血缘 |
-| 12 API/UI | 完成 | REST、SSE、统一错误、四页 React UI、组件测试、E2E |
+| 11 Incubation/Re-Wonder | 完成 | Scheduler、Autopilot 持久循环、老/新配对、质量回灌、Recent Seed、血缘 |
+| 12 API/UI | 完成 | REST、SSE、统一错误、Autopilot 控制台、组件测试、E2E |
 | 13 安全/可观测性 | 完成 | 深层输入校验、递归脱敏、Basic Auth、细粒度 metrics、级联删除、备份恢复 |
 | 14 评估/回归 | 完成 | 120 条数据、12 known cases、baseline、runner、人评模板 |
 | 15 E2E/Hardening | 完成（人工 UX 待产品验收） | 重启、runtime failure、1000×100、p50/p95、Playwright |
@@ -50,3 +50,12 @@
 - 完成至少 10 次真实 Seed 的人工 UX 验收并填写人评表。
 - 配置 GitHub branch protection，通过 CI 后创建 `v0.1.0` tag/release。
 - 长期线上使用前升级持久数据库、配置定期备份并轮换初始访问密码。
+
+## 2026-09-29 持续探索验收
+
+- [x] Campaign、当前 Session、累计 Candidate/Wonder/Runtime、失败退避和下一轮时间持久化。
+- [x] 有限深度 Wander 自动串联，重启后恢复活动 Session，单轮失败不会终止长期目标。
+- [x] 达标 Wonder 回灌为 `insight` 并写入 `derived_from` 血缘，后续轮次优先混合新旧知识。
+- [x] `/autopilot` 控制台展示实时检查点、累计指标和最新高质量结果，并支持暂停、继续、停止。
+- [x] Render Blueprint 启用 Autopilot、关闭旧 Scheduler、延长优雅关闭；GitHub Actions 每 10 分钟探测主管。
+- [ ] 免费 PostgreSQL 到期前升级为长期持久计划并启用备份；免费资源无法提供无人值守 SLA。

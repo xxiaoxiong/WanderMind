@@ -77,8 +77,14 @@ class WanderEngine:
         self,
         seed: Seed,
         budget: WanderBudget | None = None,
+        *,
+        metadata: dict[str, Any] | None = None,
     ) -> WanderSession:
-        session = WanderSession(seed_id=seed.id, budget=budget or WanderBudget())
+        session = WanderSession(
+            seed_id=seed.id,
+            budget=budget or WanderBudget(),
+            metadata=dict(metadata or {}),
+        )
         await self.repositories.sessions.create(session)
         return session
 

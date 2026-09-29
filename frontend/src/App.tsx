@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Layout } from "./components/Layout";
+import { AutopilotPage } from "./pages/AutopilotPage";
 import { InboxPage } from "./pages/InboxPage";
 import { WanderPage } from "./pages/WanderPage";
 import { WonderDetailPage } from "./pages/WonderDetailPage";
@@ -35,6 +36,8 @@ export function App() {
   let content = <InboxPage />;
   if (route.path === "/wander") {
     content = <WanderPage seedId={route.query.get("seed")} />;
+  } else if (route.path === "/autopilot") {
+    content = <AutopilotPage />;
   } else if (route.path === "/wonders") {
     content = <WondersPage />;
   } else if (route.path.startsWith("/wonders/")) {

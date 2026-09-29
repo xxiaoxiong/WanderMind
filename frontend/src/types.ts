@@ -30,6 +30,7 @@ export interface Seed {
   source: string;
   priority: number;
   status: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 
@@ -132,20 +133,53 @@ export interface WanderRunResponse {
   session: WanderSession;
   candidates: Candidate[];
   wonders: Wonder[];
-  runtime: {
-    configured_adapter: string;
-    provider: string | null;
-    model: string | null;
-    calls: number;
-    completed_calls: number;
-    failed_calls: number;
-    duration_seconds: number;
-    input_tokens: number;
-    output_tokens: number;
-    total_tokens: number;
-    purposes: string[];
-    verified: boolean;
-  };
+  runtime: RuntimeSummary;
+}
+
+export interface RuntimeSummary {
+  configured_adapter: string;
+  provider: string | null;
+  model: string | null;
+  calls: number;
+  completed_calls: number;
+  failed_calls: number;
+  duration_seconds: number;
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  purposes: string[];
+  verified: boolean;
+}
+
+export interface AutopilotCampaign {
+  id: string;
+  objective: string;
+  status: "active" | "paused" | "stopped";
+  current_session_id: string | null;
+  cycles_started: number;
+  cycles_completed: number;
+  total_candidates: number;
+  total_wonders: number;
+  total_runtime_calls: number;
+  promoted_knowledge_count: number;
+  consecutive_failures: number;
+  started_at: string;
+  last_cycle_started_at: string | null;
+  last_cycle_completed_at: string | null;
+  next_cycle_at: string | null;
+  last_error: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface AutopilotSnapshot {
+  campaign: AutopilotCampaign | null;
+  current_session: WanderSession | null;
+  current_seed: Seed | null;
+  current_runtime: RuntimeSummary;
+  latest_wonders: Wonder[];
+  knowledge_count: number;
+  generated_knowledge_count: number;
+  worker_running: boolean;
 }
 
 export interface DeepExploreResponse {

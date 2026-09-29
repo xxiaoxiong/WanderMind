@@ -6,6 +6,7 @@ from typing import Protocol
 from uuid import UUID
 
 from wandermind.models import (
+    AutopilotCampaign,
     Candidate,
     Feedback,
     KnowledgeEdge,
@@ -111,6 +112,10 @@ class InMemoryRuntimeSessionRepository(InMemoryStore[RuntimeSession]):
         ]
 
 
+class InMemoryAutopilotCampaignRepository(InMemoryStore[AutopilotCampaign]):
+    pass
+
+
 @dataclass(slots=True)
 class InMemoryRepositoryBundle:
     knowledge: InMemoryKnowledgeRepository = field(default_factory=InMemoryKnowledgeRepository)
@@ -122,4 +127,7 @@ class InMemoryRepositoryBundle:
     feedback: InMemoryFeedbackRepository = field(default_factory=InMemoryFeedbackRepository)
     runtime_sessions: InMemoryRuntimeSessionRepository = field(
         default_factory=InMemoryRuntimeSessionRepository
+    )
+    autopilot_campaigns: InMemoryAutopilotCampaignRepository = field(
+        default_factory=InMemoryAutopilotCampaignRepository
     )

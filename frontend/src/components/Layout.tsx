@@ -13,6 +13,11 @@ export function Layout({ activePath, children }: LayoutProps) {
     { href: "#/inbox", label: t("nav.inbox"), mark: "01" },
     { href: "#/wander", label: t("nav.wander"), mark: "02" },
     { href: "#/wonders", label: t("nav.wonders"), mark: "03" },
+    {
+      href: "#/autopilot",
+      label: language === "zh-CN" ? "持续探索" : "Autopilot",
+      mark: "04",
+    },
   ];
 
   return (

@@ -12,6 +12,7 @@ from wandermind.infrastructure.database import (
     drop_schema,
 )
 from wandermind.models import (
+    AutopilotCampaign,
     Candidate,
     Feedback,
     FeedbackAction,
@@ -144,3 +145,22 @@ async def test_sqlite_database_survives_engine_restart(tmp_path: Path) -> None:
     await second_engine.dispose()
 
     assert restored == item
+
+
+@pytest.mark.asyncio
+async def test_sql_autopilot_campaign_round_trip(
+    sql_repositories: SQLAlchemyRepositoryBundle,
+) -> None:
+    campaign = AutopilotCampaign(objective="Continuously discover durable insights.")
+    await sql_repositories.autopilot_campaigns.create(campaign)
+
+    campaign.cycles_started = 2
+    campaign.total_candidates = 7
+    campaign.metadata["current_mode"] = "boundary_test"
+    await sql_repositories.autopilot_campaigns.update(campaign)
+
+    restored = await sql_repositories.autopilot_campaigns.get(campaign.id)
+    assert restored is not None
+    assert restored.cycles_started == 2
+    assert restored.total_candidates == 7
+    assert restored.metadata["current_mode"] == "boundary_test"

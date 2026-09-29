@@ -7,6 +7,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
+    maxShutdownDelaySeconds: 300
     envVars:
       - key: WANDERMIND_ENV
         value: prod
@@ -35,7 +36,13 @@ services:
       - key: WANDERMIND_AUTO_CREATE_SCHEMA
         value: "false"
       - key: WANDERMIND_ENABLE_SCHEDULER
+        value: "false"
+      - key: WANDERMIND_ENABLE_AUTOPILOT
         value: "true"
+      - key: WANDERMIND_AUTOPILOT_POLL_INTERVAL_SECONDS
+        value: "5"
+      - key: WANDERMIND_AUTOPILOT_CYCLE_DELAY_SECONDS
+        value: "5"
 
 databases:
   - name: wandermind-db

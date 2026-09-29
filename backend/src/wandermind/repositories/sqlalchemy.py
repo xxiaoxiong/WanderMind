@@ -10,6 +10,7 @@ from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from wandermind.infrastructure.orm import (
+    AutopilotCampaignRow,
     CandidateRow,
     FeedbackRow,
     KnowledgeEdgeRow,
@@ -21,6 +22,7 @@ from wandermind.infrastructure.orm import (
     WonderRow,
 )
 from wandermind.models import (
+    AutopilotCampaign,
     Candidate,
     Feedback,
     KnowledgeEdge,
@@ -390,6 +392,40 @@ class SQLRuntimeSessionRepository(SQLRepository[RuntimeSessionRow]):
             return [_runtime_session_model(row) for row in rows]
 
 
+class SQLAutopilotCampaignRepository(SQLRepository[AutopilotCampaignRow]):
+    async def create(self, campaign: AutopilotCampaign) -> AutopilotCampaign:
+        row = AutopilotCampaignRow(**_autopilot_values(campaign))
+        async with self.factory() as session:
+            session.add(row)
+            await self._commit(session)
+        return _autopilot_model(row)
+
+    async def get(self, campaign_id: UUID) -> AutopilotCampaign | None:
+        async with self.factory() as session:
+            row = await session.get(AutopilotCampaignRow, campaign_id)
+            return _autopilot_model(row) if row else None
+
+    async def update(self, campaign: AutopilotCampaign) -> AutopilotCampaign:
+        async with self.factory() as session:
+            row = await session.get(AutopilotCampaignRow, campaign.id)
+            if row is None:
+                raise KeyError(campaign.id)
+            _assign(row, _autopilot_values(campaign))
+            await self._commit(session)
+            return _autopilot_model(row)
+
+    async def list(self, *, offset: int = 0, limit: int = 50) -> builtins.list[AutopilotCampaign]:
+        statement = (
+            select(AutopilotCampaignRow)
+            .order_by(AutopilotCampaignRow.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        async with self.factory() as session:
+            rows = (await session.scalars(statement)).all()
+            return [_autopilot_model(row) for row in rows]
+
+
 @dataclass(slots=True)
 class SQLAlchemyRepositoryBundle:
     factory: async_sessionmaker[AsyncSession]
@@ -401,6 +437,7 @@ class SQLAlchemyRepositoryBundle:
     sessions: SQLSessionRepository = field(init=False)
     feedback: SQLFeedbackRepository = field(init=False)
     runtime_sessions: SQLRuntimeSessionRepository = field(init=False)
+    autopilot_campaigns: SQLAutopilotCampaignRepository = field(init=False)
 
     def __post_init__(self) -> None:
         self.knowledge = SQLKnowledgeRepository(self.factory)
@@ -411,6 +448,7 @@ class SQLAlchemyRepositoryBundle:
         self.sessions = SQLSessionRepository(self.factory)
         self.feedback = SQLFeedbackRepository(self.factory)
         self.runtime_sessions = SQLRuntimeSessionRepository(self.factory)
+        self.autopilot_campaigns = SQLAutopilotCampaignRepository(self.factory)
 
 
 async def _sync_steps(session: AsyncSession, wander_session: WanderSession) -> None:
@@ -710,6 +748,54 @@ def _runtime_session_model(row: RuntimeSessionRow) -> RuntimeSession:
         last_used_at=_as_utc(row.last_used_at),
         cost=row.cost,
         metadata=row.runtime_metadata,
+        created_at=_as_utc(row.created_at),
+        updated_at=_as_utc(row.updated_at),
+    )
+
+
+def _autopilot_values(campaign: AutopilotCampaign) -> dict[str, Any]:
+    return {
+        **_base_values(campaign),
+        "objective": campaign.objective,
+        "status": campaign.status.value,
+        "budget": campaign.budget.model_dump(mode="json"),
+        "current_session_id": campaign.current_session_id,
+        "cycles_started": campaign.cycles_started,
+        "cycles_completed": campaign.cycles_completed,
+        "total_candidates": campaign.total_candidates,
+        "total_wonders": campaign.total_wonders,
+        "total_runtime_calls": campaign.total_runtime_calls,
+        "promoted_knowledge_count": campaign.promoted_knowledge_count,
+        "consecutive_failures": campaign.consecutive_failures,
+        "started_at": campaign.started_at,
+        "last_cycle_started_at": campaign.last_cycle_started_at,
+        "last_cycle_completed_at": campaign.last_cycle_completed_at,
+        "next_cycle_at": campaign.next_cycle_at,
+        "last_error": campaign.last_error,
+        "campaign_metadata": campaign.metadata,
+    }
+
+
+def _autopilot_model(row: AutopilotCampaignRow) -> AutopilotCampaign:
+    return AutopilotCampaign(
+        id=row.id,
+        objective=row.objective,
+        status=row.status,
+        budget=row.budget,
+        current_session_id=row.current_session_id,
+        cycles_started=row.cycles_started,
+        cycles_completed=row.cycles_completed,
+        total_candidates=row.total_candidates,
+        total_wonders=row.total_wonders,
+        total_runtime_calls=row.total_runtime_calls,
+        promoted_knowledge_count=row.promoted_knowledge_count,
+        consecutive_failures=row.consecutive_failures,
+        started_at=_as_utc(row.started_at),
+        last_cycle_started_at=_as_utc(row.last_cycle_started_at),
+        last_cycle_completed_at=_as_utc(row.last_cycle_completed_at),
+        next_cycle_at=_as_utc(row.next_cycle_at),
+        last_error=row.last_error,
+        metadata=row.campaign_metadata,
         created_at=_as_utc(row.created_at),
         updated_at=_as_utc(row.updated_at),
     )

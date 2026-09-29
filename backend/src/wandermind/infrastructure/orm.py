@@ -190,3 +190,34 @@ class RuntimeSessionRow(TimestampMixin, Base):
     last_used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     cost: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     runtime_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
+
+
+class AutopilotCampaignRow(TimestampMixin, Base):
+    __tablename__ = "autopilot_campaigns"
+
+    objective: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(40), index=True)
+    budget: Mapped[dict[str, Any]] = mapped_column(JSON)
+    current_session_id: Mapped[UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("wander_sessions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    cycles_started: Mapped[int] = mapped_column(Integer, default=0)
+    cycles_completed: Mapped[int] = mapped_column(Integer, default=0)
+    total_candidates: Mapped[int] = mapped_column(Integer, default=0)
+    total_wonders: Mapped[int] = mapped_column(Integer, default=0)
+    total_runtime_calls: Mapped[int] = mapped_column(Integer, default=0)
+    promoted_knowledge_count: Mapped[int] = mapped_column(Integer, default=0)
+    consecutive_failures: Mapped[int] = mapped_column(Integer, default=0)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_cycle_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_cycle_completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    next_cycle_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    campaign_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)

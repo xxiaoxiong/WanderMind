@@ -25,6 +25,15 @@ docker compose down
 - Runtime timeout / malformed / unavailable。
 - PostgreSQL 容量、连接和慢查询。
 - Scheduler 重复执行或长时间无执行。
+- `GET /api/v1/autopilot/status` 中 `worker_running=false`、连续失败增长或 `last_cycle_completed_at` 长时间不推进。
+
+线上 Autopilot 快速检查：
+
+```powershell
+Invoke-RestMethod https://wandermind-p6jg.onrender.com/api/v1/autopilot/status
+```
+
+正常状态应满足 `worker_running=true`、Campaign 为 `active`，且 `cycles_completed`、`total_candidates` 或当前 Session Trace 随时间推进。Campaign 本身存储于数据库，服务重启后会自动恢复。
 
 ## 备份与恢复
 
@@ -58,6 +67,10 @@ OpenAI-compatible Runtime 的 401/403 通常表示密钥无效或权限不足；
 ### Scheduler 重复
 
 立即将 `WANDERMIND_ENABLE_SCHEDULER=false`，保留一个 leader 后再启用。检查近期开启的 Random Revival Seeds。
+
+### Autopilot 停止推进
+
+先读取 `/api/v1/autopilot/status`。若主管在线但 `last_error=insufficient_knowledge`，至少补充两条有效知识；若供应商持续失败，检查 Runtime 状态与 Agnes 配额，主管会指数退避后自动重试。若 Campaign 被暂停或停止，调用 `/autopilot/resume`。禁止同时启动多个 Web 副本；当前没有跨实例租约。
 
 ### 迁移失败
 

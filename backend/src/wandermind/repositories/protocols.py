@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID
 
 from wandermind.models import (
+    AutopilotCampaign,
     Candidate,
     Feedback,
     KnowledgeEdge,
@@ -79,6 +80,15 @@ class RuntimeSessionRepository(Protocol):
     async def list_for_wander(self, wander_session_id: UUID) -> builtins.list[RuntimeSession]: ...
 
 
+class AutopilotCampaignRepository(Protocol):
+    async def create(self, campaign: AutopilotCampaign) -> AutopilotCampaign: ...
+    async def get(self, campaign_id: UUID) -> AutopilotCampaign | None: ...
+    async def update(self, campaign: AutopilotCampaign) -> AutopilotCampaign: ...
+    async def list(
+        self, *, offset: int = 0, limit: int = 50
+    ) -> builtins.list[AutopilotCampaign]: ...
+
+
 class RepositoryBundle(Protocol):
     @property
     def knowledge(self) -> KnowledgeRepository: ...
@@ -103,3 +113,6 @@ class RepositoryBundle(Protocol):
 
     @property
     def runtime_sessions(self) -> RuntimeSessionRepository: ...
+
+    @property
+    def autopilot_campaigns(self) -> AutopilotCampaignRepository: ...
