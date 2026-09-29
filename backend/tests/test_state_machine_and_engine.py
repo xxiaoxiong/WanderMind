@@ -122,3 +122,47 @@ async def test_wander_records_patch_switches_and_honors_switch_budget() -> None:
     )
     assert timed_result.candidates == []
     assert timed_result.session.trace.stop_reason == "time_budget_exhausted"
+
+
+@pytest.mark.asyncio
+async def test_deep_wander_compares_multiple_candidates_before_completing() -> None:
+    repositories = InMemoryRepositoryBundle()
+    embedding = HashEmbeddingAdapter(48)
+    ingestion = IngestionService(repositories.knowledge, embedding)
+    for title, content in [
+        ("Forest resilience", "Forests recover through diversity and distributed feedback."),
+        ("Queue control", "Software queues stabilize load through local backpressure."),
+        ("Public health", "Sentinel networks detect outbreaks through distributed signals."),
+        ("Supply chains", "Inventory buffers absorb demand shocks across supplier networks."),
+    ]:
+        await ingestion.ingest_text(content, title=title)
+    seed = Seed(content="Compare robust distributed responses to uncertain demand.")
+    await repositories.seeds.create(seed)
+    engine = WanderEngine(
+        repositories,
+        embedding,
+        OperatorSelector(default_operators()),
+        WonderScorer(
+            embedding,
+            thresholds=ThresholdPolicy(reject_below=0.0, explore_above=0.0, surface_above=0.0),
+        ),
+    )
+
+    result = await engine.run(
+        seed,
+        WanderBudget(
+            max_steps=6,
+            max_candidates=4,
+            min_candidates=3,
+            target_wonders=2,
+            max_stagnant_candidates=4,
+            stop_on_first_wonder=False,
+            max_runtime_calls=0,
+        ),
+    )
+
+    assert len(result.candidates) >= 3
+    assert len(result.wonders) >= 2
+    assert result.session.trace.stop_reason == "target_wonders_reached"
+    assert result.session.trace.final_wonder_ids == [wonder.id for wonder in result.wonders]
+    assert any(step.action == "continue_after_surface" for step in result.session.trace.steps)

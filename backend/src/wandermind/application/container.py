@@ -29,6 +29,7 @@ from wandermind.application.incubation_service import (
     IncubationService,
     ReWonderService,
 )
+from wandermind.application.wander_coordinator import WanderCoordinator
 from wandermind.application.wonder_service import FeedbackService, WonderPromotionService
 from wandermind.cognitive.embedding import HashEmbeddingAdapter
 from wandermind.cognitive.engine import WanderEngine
@@ -55,6 +56,7 @@ class ApplicationContainer:
     embedding: HashEmbeddingAdapter
     ingestion: IngestionService
     wander_engine: WanderEngine
+    wander_coordinator: WanderCoordinator
     runtime: AgentRuntimeAdapter
     deep_evaluation: DeepEvaluationService
     promotion: WonderPromotionService
@@ -129,12 +131,14 @@ def build_container(
         ),
     )
     incubation = IncubationService(selected_repositories, wander_engine)
+    wander_coordinator = WanderCoordinator(selected_repositories, wander_engine)
     return ApplicationContainer(
         settings=settings,
         repositories=selected_repositories,
         embedding=embedding,
         ingestion=IngestionService(selected_repositories.knowledge, embedding),
         wander_engine=wander_engine,
+        wander_coordinator=wander_coordinator,
         runtime=selected_runtime,
         deep_evaluation=deep_evaluation,
         promotion=WonderPromotionService(

@@ -13,8 +13,18 @@ class WanderBudget(DomainModel):
     max_steps: int = Field(default=8, ge=1, le=100)
     max_patch_switches: int = Field(default=2, ge=0, le=20)
     max_candidates: int = Field(default=5, ge=1, le=100)
+    min_candidates: int = Field(default=1, ge=1, le=100)
+    target_wonders: int = Field(default=1, ge=1, le=20)
+    max_stagnant_candidates: int = Field(default=3, ge=1, le=100)
+    stop_on_first_wonder: bool = True
     max_runtime_calls: int = Field(default=4, ge=0, le=100)
     time_budget_seconds: float = Field(default=30.0, gt=0, le=3_600)
+
+    @model_validator(mode="after")
+    def validate_depth_targets(self) -> WanderBudget:
+        if self.min_candidates > self.max_candidates:
+            raise ValueError("min_candidates cannot exceed max_candidates")
+        return self
 
 
 class WanderStep(IdentifiedModel):

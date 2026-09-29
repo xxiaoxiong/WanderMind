@@ -62,6 +62,22 @@ export interface WanderStep {
   created_at: string;
 }
 
+export interface WanderProgress {
+  status: string;
+  state: string;
+  candidate_count: number;
+  wonder_count: number;
+  runtime_calls_used: number;
+}
+
+export interface WanderCompletion {
+  status: string;
+  stop_reason: string | null;
+  wonder_ids: string[];
+  patch_ids: string[];
+  candidate_count: number;
+}
+
 export interface WanderSession {
   id: string;
   seed_id: string;
@@ -75,6 +91,9 @@ export interface WanderSession {
     final_wonder_ids: string[];
     stop_reason: string | null;
   };
+  metadata: Record<string, unknown>;
+  started_at: string | null;
+  ended_at: string | null;
   created_at: string;
 }
 

@@ -73,20 +73,58 @@ class WanderEngine:
         self.candidate_synthesizer = candidate_synthesizer
         self.candidate_reviewer = candidate_reviewer
 
-    async def run(self, seed: Seed, budget: WanderBudget | None = None) -> WanderRunResult:
+    async def create_session(
+        self,
+        seed: Seed,
+        budget: WanderBudget | None = None,
+    ) -> WanderSession:
         session = WanderSession(seed_id=seed.id, budget=budget or WanderBudget())
         await self.repositories.sessions.create(session)
+        return session
+
+    async def run(
+        self,
+        seed: Seed,
+        budget: WanderBudget | None = None,
+        *,
+        session: WanderSession | None = None,
+    ) -> WanderRunResult:
+        if session is None:
+            session = await self.create_session(seed, budget)
+        elif session.seed_id != seed.id:
+            raise ValueError("wander session seed does not match")
+        terminal_statuses = {
+            SessionStatus.COMPLETED,
+            SessionStatus.STOPPED,
+            SessionStatus.FAILED,
+        }
+        candidates = await self.repositories.candidates.list_for_session(session.id)
+        all_wonders = await self.repositories.wonders.list(offset=0, limit=10_000)
+        wonders = [wonder for wonder in all_wonders if wonder.session_id == session.id]
+        if session.status in terminal_statuses:
+            return WanderRunResult(session=session, candidates=candidates, wonders=wonders)
+        resuming = bool(session.trace.steps)
+        if resuming:
+            session.metadata["recovery_count"] = int(session.metadata.get("recovery_count", 0)) + 1
+            session.state = CognitiveState.IDLE
         machine = CognitiveStateMachine()
-        candidates: list[Candidate] = []
-        wonders: list[Wonder] = []
-        visited_ids: set[UUID] = set()
-        visited_path: list[UUID] = []
+        visited_path = [item_id for candidate in candidates for item_id in candidate.wander_path]
+        visited_ids = set(visited_path)
         started_at = datetime.now(UTC)
         started_clock = perf_counter()
-        session.started_at = started_at
+        session.started_at = session.started_at or started_at
+        session.ended_at = None
         session.status = SessionStatus.RUNNING
+        session.metadata["cancel_requested"] = False
+        await self.repositories.sessions.update(session)
         try:
-            self._transition(session, machine, CognitiveState.SEEDING, "select_seed", seed.content)
+            await self._transition(
+                session,
+                machine,
+                CognitiveState.SEEDING,
+                "resume_session" if resuming else "select_seed",
+                "resuming from the last durable checkpoint" if resuming else seed.content,
+            )
             seed.status = SeedStatus.ACTIVE
             await self.repositories.seeds.update(seed)
             items = await self.repositories.knowledge.list(offset=0, limit=10_000)
@@ -110,7 +148,7 @@ class WanderEngine:
                 }
                 for patch in patches
             ]
-            self._transition(
+            await self._transition(
                 session,
                 machine,
                 CognitiveState.WANDER,
@@ -130,18 +168,34 @@ class WanderEngine:
                 for wonder in historical_wonders
                 for feedback in await self.repositories.feedback.list_for_wonder(wonder.id)
             ]
-            previous_operators: list[str] = []
+            previous_operators = [candidate.operator for candidate in candidates]
             pinned_pair = self._pinned_pair(seed, items)
             patch_by_item: dict[UUID, KnowledgePatch] = {}
             for patch in patches:
                 for item_id in patch.member_ids:
                     patch_by_item.setdefault(item_id, patch)
-            patch_switches = 0
-            wander_moves = 0
-            runtime_calls_used = 0
+            patch_switches = int(session.metadata.get("patch_switches", 0))
+            wander_moves = int(session.metadata.get("wander_moves", 0))
+            runtime_calls_used = int(session.metadata.get("runtime_calls_used", 0))
             quality_guards: dict[str, int] = {}
+            stagnant_candidates = int(session.metadata.get("stagnant_candidates", 0))
+            processed_pairs = {
+                frozenset(candidate.source_items[:2])
+                for candidate in candidates
+                if len(candidate.source_items) >= 2
+            }
             termination_reason = "search_space_exhausted"
             for left_result, right_result in self._candidate_pairs(ranked, pinned_pair):
+                if frozenset((left_result.item.id, right_result.item.id)) in processed_pairs:
+                    continue
+                if await self._cancel_requested(session):
+                    return await self._stop(
+                        session,
+                        machine,
+                        candidates,
+                        wonders,
+                        "manual_stop",
+                    )
                 if self._elapsed(started_clock) >= session.budget.time_budget_seconds:
                     termination_reason = "time_budget_exhausted"
                     break
@@ -191,7 +245,7 @@ class WanderEngine:
                     if item_id not in visited_ids:
                         visited_ids.add(item_id)
                         visited_path.append(item_id)
-                self._record(
+                await self._record(
                     session,
                     CognitiveState.WANDER,
                     "patch_switch" if changes_patch else "local_wander",
@@ -211,7 +265,7 @@ class WanderEngine:
                     },
                 )
                 association = self.association_engine.analyze(left, right)
-                self._transition(
+                await self._transition(
                     session,
                     machine,
                     CognitiveState.COLLISION,
@@ -223,7 +277,7 @@ class WanderEngine:
                     collision_score=association.strength,
                 )
                 if association.strength < 0.15:
-                    self._transition(
+                    await self._transition(
                         session,
                         machine,
                         CognitiveState.WANDER,
@@ -237,7 +291,7 @@ class WanderEngine:
                 operator = self.operator_selector.select(context, previous_operators)
                 previous_operators.append(operator.name)
                 session.trace.operators.append(operator.name)
-                self._transition(
+                await self._transition(
                     session,
                     machine,
                     CognitiveState.GENERATE,
@@ -255,7 +309,7 @@ class WanderEngine:
                     self.candidate_synthesizer is not None
                     and runtime_calls_used < session.budget.max_runtime_calls
                 ):
-                    self._record(
+                    await self._record(
                         session,
                         CognitiveState.GENERATE,
                         "agent_synthesis",
@@ -270,7 +324,7 @@ class WanderEngine:
                     )
                     runtime_calls_used += synthesis.runtime_calls
                     operator_result = synthesis.operator_result
-                    self._record(
+                    await self._record(
                         session,
                         CognitiveState.GENERATE,
                         "agent_synthesis_completed"
@@ -313,7 +367,7 @@ class WanderEngine:
                 await self.repositories.candidates.create(candidate)
                 candidates.append(candidate)
                 session.trace.candidate_ids.append(candidate.id)
-                self._transition(
+                await self._transition(
                     session,
                     machine,
                     CognitiveState.SCORE,
@@ -351,7 +405,7 @@ class WanderEngine:
                     and self.candidate_reviewer is not None
                     and remaining_runtime_calls >= 1
                 ):
-                    self._transition(
+                    await self._transition(
                         session,
                         machine,
                         CognitiveState.EXPLORE,
@@ -373,7 +427,7 @@ class WanderEngine:
                     elif review.verdict == "revise":
                         candidate.status = CandidateStatus.FILTERED
                     await self.repositories.candidates.update(candidate)
-                    self._transition(
+                    await self._transition(
                         session,
                         machine,
                         CognitiveState.CRITIQUE,
@@ -396,7 +450,7 @@ class WanderEngine:
                         "reason": "runtime_budget_exhausted",
                     }
                     await self.repositories.candidates.update(candidate)
-                    self._record(
+                    await self._record(
                         session,
                         CognitiveState.SCORE,
                         "runtime_review_skipped",
@@ -441,7 +495,7 @@ class WanderEngine:
                     and scores.hallucination_risk < 0.75
                     and review_passed
                 ):
-                    self._transition(
+                    await self._transition(
                         session,
                         machine,
                         CognitiveState.PERSIST,
@@ -505,7 +559,7 @@ class WanderEngine:
                     await self.repositories.candidates.update(candidate)
                     wonders.append(wonder)
                     session.trace.final_wonder_ids.append(wonder.id)
-                    self._transition(
+                    await self._transition(
                         session,
                         machine,
                         CognitiveState.SURFACE,
@@ -514,14 +568,34 @@ class WanderEngine:
                         item_ids=wonder.source_items,
                         candidate_ids=[candidate.id],
                     )
-                    session.ended_at = utc_now()
-                    session.status = SessionStatus.COMPLETED
-                    session.trace.stop_reason = "high_value_found"
-                    seed.status = SeedStatus.USED
-                    seed.last_used_at = utc_now()
-                    await self.repositories.seeds.update(seed)
-                    await self.repositories.sessions.update(session)
-                    return WanderRunResult(session=session, candidates=candidates, wonders=wonders)
+                    stagnant_candidates = 0
+                    session.metadata["stagnant_candidates"] = stagnant_candidates
+                    reached_depth_target = (
+                        len(candidates) >= session.budget.min_candidates
+                        and len(wonders) >= session.budget.target_wonders
+                    )
+                    if session.budget.stop_on_first_wonder or reached_depth_target:
+                        reason = (
+                            "high_value_found"
+                            if session.budget.stop_on_first_wonder
+                            else "target_wonders_reached"
+                        )
+                        return await self._complete(
+                            session,
+                            machine,
+                            seed,
+                            candidates,
+                            wonders,
+                            reason,
+                        )
+                    await self._transition(
+                        session,
+                        machine,
+                        CognitiveState.WANDER,
+                        "continue_after_surface",
+                        "depth target requires comparing more independently reviewed candidates",
+                    )
+                    continue
                 guard_reason: str | None = None
                 if scores.redundancy >= 0.85:
                     guard_reason = "candidate_convergence"
@@ -535,7 +609,9 @@ class WanderEngine:
                     quality_guards[guard_reason] = quality_guards.get(guard_reason, 0) + 1
                     candidate.metadata["quality_guard"] = guard_reason
                     await self.repositories.candidates.update(candidate)
-                self._transition(
+                stagnant_candidates += 1
+                session.metadata["stagnant_candidates"] = stagnant_candidates
+                await self._transition(
                     session,
                     machine,
                     CognitiveState.WANDER,
@@ -546,11 +622,17 @@ class WanderEngine:
                         else f"candidate decision was {decision.value}"
                     ),
                 )
+                if (
+                    len(candidates) >= session.budget.min_candidates
+                    and stagnant_candidates >= session.budget.max_stagnant_candidates
+                ):
+                    termination_reason = "no_improvement_patience_exhausted"
+                    break
             session.metadata["quality_guards"] = quality_guards
             return await self._stop(session, machine, candidates, wonders, termination_reason)
         except Exception as error:
             if CognitiveState.FAILED in self._legal_targets(machine):
-                self._transition(
+                await self._transition(
                     session,
                     machine,
                     CognitiveState.FAILED,
@@ -584,9 +666,13 @@ class WanderEngine:
         wonders: list[Wonder],
         reason: str,
     ) -> WanderRunResult:
-        completed = reason not in {"insufficient_knowledge", "no_retrieval_candidates"}
+        completed = reason not in {
+            "insufficient_knowledge",
+            "no_retrieval_candidates",
+            "manual_stop",
+        }
         if CognitiveState.STOPPED in self._legal_targets(machine):
-            self._transition(
+            await self._transition(
                 session,
                 machine,
                 CognitiveState.STOPPED,
@@ -602,10 +688,65 @@ class WanderEngine:
                 seed.status = SeedStatus.USED
                 seed.last_used_at = utc_now()
                 await self.repositories.seeds.update(seed)
+        result = self._rank_result(session, candidates, wonders)
         await self.repositories.sessions.update(session)
-        return WanderRunResult(session=session, candidates=candidates, wonders=wonders)
+        return result
 
-    def _transition(
+    async def _complete(
+        self,
+        session: WanderSession,
+        machine: CognitiveStateMachine,
+        seed: Seed,
+        candidates: list[Candidate],
+        wonders: list[Wonder],
+        reason: str,
+    ) -> WanderRunResult:
+        if CognitiveState.STOPPED in self._legal_targets(machine):
+            await self._transition(
+                session,
+                machine,
+                CognitiveState.STOPPED,
+                "complete",
+                reason,
+            )
+        session.ended_at = utc_now()
+        session.status = SessionStatus.COMPLETED
+        session.trace.stop_reason = reason
+        seed.status = SeedStatus.USED
+        seed.last_used_at = utc_now()
+        await self.repositories.seeds.update(seed)
+        result = self._rank_result(session, candidates, wonders)
+        await self.repositories.sessions.update(session)
+        return result
+
+    def _rank_result(
+        self,
+        session: WanderSession,
+        candidates: list[Candidate],
+        wonders: list[Wonder],
+    ) -> WanderRunResult:
+        ranked_wonders = sorted(
+            wonders,
+            key=lambda wonder: (wonder.scores.total, wonder.confidence),
+            reverse=True,
+        )
+        session.trace.final_wonder_ids = [wonder.id for wonder in ranked_wonders]
+        session.metadata["ranked_wonder_count"] = len(ranked_wonders)
+        return WanderRunResult(
+            session=session,
+            candidates=candidates,
+            wonders=ranked_wonders,
+        )
+
+    async def _cancel_requested(self, session: WanderSession) -> bool:
+        stored = await self.repositories.sessions.get(session.id)
+        if stored is None:
+            return True
+        return stored.status is SessionStatus.STOPPED or bool(
+            stored.metadata.get("cancel_requested")
+        )
+
+    async def _transition(
         self,
         session: WanderSession,
         machine: CognitiveStateMachine,
@@ -616,9 +757,9 @@ class WanderEngine:
     ) -> None:
         machine.transition(target)
         session.state = target
-        self._record(session, target, action, reason, **step_fields)
+        await self._record(session, target, action, reason, **step_fields)
 
-    def _record(
+    async def _record(
         self,
         session: WanderSession,
         state: CognitiveState,
@@ -636,6 +777,7 @@ class WanderEngine:
             )
         )
         session.updated_at = utc_now()
+        await self.repositories.sessions.update(session)
 
     def _legal_targets(self, machine: CognitiveStateMachine) -> set[CognitiveState]:
         from wandermind.cognitive.state_machine import LEGAL_TRANSITIONS

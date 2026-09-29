@@ -42,10 +42,12 @@ def create_app(
         app.state.container = selected_container
         if selected_container.database_engine is not None and selected_settings.auto_create_schema:
             await create_schema(selected_container.database_engine)
+        await selected_container.wander_coordinator.recover()
         if selected_settings.enable_scheduler:
             selected_container.scheduler.start()
         yield
         selected_container.scheduler.shutdown()
+        await selected_container.wander_coordinator.shutdown()
         await selected_container.runtime.close()
         if selected_container.database_engine is not None:
             await selected_container.database_engine.dispose()

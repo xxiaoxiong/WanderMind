@@ -42,7 +42,7 @@ LEGAL_TRANSITIONS: dict[CognitiveState, set[CognitiveState]] = {
         CognitiveState.FAILED,
     },
     CognitiveState.PERSIST: {CognitiveState.SURFACE, CognitiveState.WANDER, CognitiveState.FAILED},
-    CognitiveState.SURFACE: {CognitiveState.STOPPED},
+    CognitiveState.SURFACE: {CognitiveState.WANDER, CognitiveState.STOPPED},
     CognitiveState.STOPPED: set(),
     CognitiveState.FAILED: set(),
 }

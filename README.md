@@ -132,9 +132,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/demo.ps1
 | GET | `/api/v1/graph/{id}/evidence` | 查询支持与反证 |
 | GET | `/api/v1/graph/{id}/contradictions` | 查询矛盾关系 |
 | POST / GET | `/api/v1/seeds` | 创建、列出 Seed |
-| POST | `/api/v1/wander` | 执行预算化漫游 |
-| GET | `/api/v1/wander/{id}/stream` | SSE 结构化 Trace |
-| POST | `/api/v1/wander/{id}/stop` | 停止运行中 Session |
+| POST | `/api/v1/wander` | 兼容性同步预算漫游 |
+| POST | `/api/v1/wander/start` | 创建持久后台漫游并立即返回 |
+| GET | `/api/v1/wander/{id}/stream` | 实时 SSE Step、进度与心跳，可游标续传 |
+| GET | `/api/v1/wander/{id}/result` | 获取 Session、候选、排序 Wonder 与 Runtime 摘要 |
+| POST | `/api/v1/wander/{id}/stop` | 真实取消运行中后台 Session |
 | DELETE | `/api/v1/wander/{id}` | 级联删除 Session 产物并解绑 Runtime 会话 |
 | GET | `/api/v1/wonders` | 获取已呈现 Wonders |
 | POST | `/api/v1/wonders/{id}/explore` | Explorer/Evidence/Critic 深探 |

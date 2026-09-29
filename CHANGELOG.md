@@ -4,6 +4,8 @@
 
 ### Added
 
+- Persistent background Wander sessions with startup recovery, live checkpoint SSE, reconnect cursors, true cancellation and result polling.
+- Deep exploration budgets for minimum candidate comparison, multiple target Wonders, stagnation patience and final ranked alternatives.
 - Agent-backed candidate synthesis in the primary Wander flow, followed by real evidence and critic calls for promising candidates.
 - Per-run Runtime proof in API/UI: configured adapter, actual provider/model, calls, failures, duration, tokens and purposes.
 - Reusable real Codex App Server smoke script with strict structured-output validation and clean process shutdown.
@@ -14,6 +16,8 @@
 
 ### Changed
 
+- The web client now starts deep Wander jobs asynchronously, survives page refreshes, reconnects interrupted streams and exposes live candidate/Wonder/Runtime progress.
+- Wander sessions checkpoint every structured cognitive step and no longer stop on the first promoted Wonder when deep mode is enabled.
 - Wander search now explores unique knowledge pairs and continues after individual quality guards instead of stopping on the first weak candidate.
 - Normal budget/search exhaustion completes cleanly, and the UI retains the best candidate when no Wonder crosses the surface threshold.
 - Cognitive benchmark Runtime-call metrics now come from persisted Runtime sessions instead of a constant placeholder.

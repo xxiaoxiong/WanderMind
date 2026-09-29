@@ -221,6 +221,15 @@ button:disabled { opacity: .42; cursor: not-allowed; transform: none !important;
 
 .loading-orbit { min-height: 300px; display: grid; place-items: center; align-content: center; gap: 22px; }
 .loading-orbit p { color: var(--muted); font: 300 9px var(--mono); text-transform: uppercase; letter-spacing: .12em; }
+.live-wander { display: grid; gap: 22px; margin-bottom: 38px; }
+.live-wander .loading-orbit { min-height: 190px; }
+.live-progress { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--trace); }
+.live-progress strong { width: 100%; color: var(--lime); font: 400 8px var(--mono); text-transform: uppercase; letter-spacing: .12em; }
+.live-progress span { color: var(--muted); font: 300 9px var(--mono); }
+.ranked-wonders { display: grid; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+.ranked-wonders > strong { color: var(--lime); font: 400 8px var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+.ranked-wonders a { display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 8px 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.ranked-wonders a span { color: var(--cyan); font-family: var(--mono); }
 .orbit-ring { position: relative; width: 80px; height: 80px; display: grid; place-items: center; border: 1px solid rgba(200,241,105,.25); border-radius: 50%; animation: spin 3.4s linear infinite; }
 .orbit-ring::after { content: ""; position: absolute; width: 105px; height: 34px; border: 1px solid rgba(108,229,213,.2); border-radius: 50%; transform: rotate(35deg); }
 .orbit-ring span { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 15px var(--lime); }

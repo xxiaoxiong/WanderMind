@@ -96,7 +96,13 @@ PostgreSQL 使用 pgvector；SQLite 自动退化为 JSON 向量，便于测试�
 
 ## API 与流式策略
 
-`POST /wander` 在当前进程内完成一次预算运行并返回结果及脱敏 Runtime 摘要；`GET /wander/{id}/stream` 以 SSE 回放结构化 Trace。这保证断线重放，但不是逐 token 推理流。长期运行应迁移到持久化队列和实时事件总线，见限制文档。
+`POST /wander` 保留为兼容性的同步入口。产品主流程使用 `POST /wander/start` 创建持久 Session 并立即返回 `202`，由进程内 `WanderCoordinator` 在请求生命周期之外执行；`GET /wander/{id}/result` 随时读取已持久化的候选、Wonder 与脱敏 Runtime 摘要。
+
+Engine 在每个结构化 Step 后写入 Session checkpoint。`GET /wander/{id}/stream` 持续轮询这些 checkpoint，通过 SSE 实时发送新增 Step、候选/Wonder/Runtime 调用进度和心跳；客户端可使用 `after` 游标断线续传，并在刷新后根据本地保存的 Session ID 自动接续。停止接口会设置持久取消标记并取消本进程 Task，而不是只修改显示状态。
+
+深度模式不在首个 Wonder 后退出：它至少比较 `min_candidates` 个候选，争取达到 `target_wonders`，受无改进耐心、步骤、候选、Runtime 调用和总时长多重预算约束，最后按总分与置信度重排所有已呈现结果。
+
+当前协调器面向单实例部署；进程重启会重新提交 `pending/running` Session，并跳过已持久化候选所对应的知识对。多实例部署仍应升级为带任务租约的外部持久队列，见限制文档。
 
 ## 安全不变量
 

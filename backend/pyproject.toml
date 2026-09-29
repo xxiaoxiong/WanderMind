@@ -22,7 +22,6 @@ dependencies = [
   "pydantic-settings>=2.5,<3",
   "python-multipart>=0.0.9,<1",
   "sqlalchemy[asyncio]>=2.0.35,<3",
-  "sse-starlette>=2.1,<3",
   "structlog>=24.4,<26",
   "uvicorn[standard]>=0.30,<1",
 ]
@@ -72,5 +71,5 @@ plugins = ["pydantic.mypy"]
 packages = ["wandermind"]
 
 [[tool.mypy.overrides]]
-module = ["apscheduler.*", "pgvector.*", "sse_starlette.*", "structlog.*"]
+module = ["apscheduler.*", "pgvector.*", "structlog.*"]
 ignore_missing_imports = true

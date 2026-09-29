@@ -4,6 +4,9 @@ import type {
   KnowledgeItem,
   Seed,
   WanderRunResponse,
+  WanderCompletion,
+  WanderProgress,
+  WanderSession,
   WanderStep,
   Wonder,
 } from "./types";
@@ -85,6 +88,31 @@ export const api = {
       }),
     });
   },
+  startWander(payload: { seed_id?: string; content?: string }): Promise<WanderSession> {
+    return request("/wander/start", {
+      method: "POST",
+      body: JSON.stringify({
+        ...payload,
+        budget: {
+          max_steps: 24,
+          max_patch_switches: 8,
+          max_candidates: 8,
+          min_candidates: 4,
+          target_wonders: 3,
+          max_stagnant_candidates: 5,
+          stop_on_first_wonder: false,
+          max_runtime_calls: 16,
+          time_budget_seconds: 900,
+        },
+      }),
+    });
+  },
+  getWanderResult(id: string): Promise<WanderRunResponse> {
+    return request("/wander/" + id + "/result");
+  },
+  stopWander(id: string): Promise<WanderSession> {
+    return request("/wander/" + id + "/stop", { method: "POST" });
+  },
   listWonders(): Promise<Wonder[]> {
     return request("/wonders?limit=100");
   },
@@ -111,8 +139,12 @@ export const api = {
 export async function streamWanderTrace(
   sessionId: string,
   onStep: (step: WanderStep) => void,
-): Promise<void> {
-  const response = await fetch(API_ROOT + "/wander/" + sessionId + "/stream");
+  onProgress?: (progress: WanderProgress) => void,
+  after = -1,
+): Promise<WanderCompletion> {
+  const response = await fetch(
+    API_ROOT + "/wander/" + sessionId + "/stream?after=" + after,
+  );
   if (!response.ok || !response.body) {
     throw new ApiError("The wander trace could not be streamed.");
   }
@@ -130,8 +162,15 @@ export async function streamWanderTrace(
       if (event.name === "wander_step" && event.data) {
         onStep(JSON.parse(event.data) as WanderStep);
       }
+      if (event.name === "progress" && event.data) {
+        onProgress?.(JSON.parse(event.data) as WanderProgress);
+      }
+      if (event.name === "completed" && event.data) {
+        return JSON.parse(event.data) as WanderCompletion;
+      }
     }
   }
+  throw new ApiError("The wander trace ended before the task completed.", "stream_interrupted", true);
 }
 
 function parseEvent(chunk: string): { name: string; data: string } {
