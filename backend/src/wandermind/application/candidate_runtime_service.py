@@ -208,6 +208,8 @@ def _synthesis_prompt(context: OperatorContext, draft: OperatorResult) -> str:
                 "content": item.content[:3_000],
                 "topics": item.topics,
                 "source_ref": item.source_ref,
+                "source": item.source,
+                "epistemic_status": item.metadata.get("epistemic_status", "source_knowledge"),
             }
             for item in (context.left, context.right)
         ],
@@ -225,6 +227,9 @@ def _synthesis_prompt(context: OperatorContext, draft: OperatorResult) -> str:
             language,
             "Improve the operator draft into one concrete, non-generic and testable connection.",
             "Use only the supplied seed and source items as factual grounding.",
+            "Treat any source produced by autopilot as an unverified hypothesis, never as evidence.",
+            "Never invent measurements, thresholds, percentages, units, or empirical outcomes.",
+            "A number absent from the sources may only be proposed as an experiment parameter.",
             "Preserve uncertainty, name assumptions, and never claim the two domains are identical.",
             "Questions must be actionable tests or discriminating observations.",
             f"Input: {json.dumps(payload, ensure_ascii=False)}",
@@ -239,6 +244,8 @@ def _review_prompt(candidate: Candidate, context: list[KnowledgeItem]) -> str:
             "title": item.title,
             "content": item.content[:3_000],
             "topics": item.topics,
+            "source": item.source,
+            "epistemic_status": item.metadata.get("epistemic_status", "source_knowledge"),
         }
         for item in context
     ]
@@ -261,6 +268,8 @@ def _review_prompt(candidate: Candidate, context: list[KnowledgeItem]) -> str:
             language,
             "Judge the candidate as a testable structural-transfer hypothesis, not as a proven fact.",
             "Use only the supplied source items and copy citation_ref values exactly into source_refs.",
+            "Treat autopilot-generated source content as an unverified hypothesis, never as evidence.",
+            "Reject unsupported measurements, thresholds, percentages, units, or empirical outcomes.",
             "PASS when the connection is grounded, coherent, useful, testable, and explicitly caveated.",
             "Use REVISE for a promising but fixable claim and REJECT only for unsupported or contradictory claims.",
             "The expanded idea must preserve uncertainty and state a concrete validation path.",

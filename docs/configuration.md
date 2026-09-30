@@ -125,7 +125,7 @@ API key 不会写入 Runtime Session、usage 或日志。生产环境应使用�
 
 ## Autopilot
 
-Autopilot 把每轮有限预算 Wander 串成持久循环。Campaign、当前 Session、累计 Candidate/Wonder/Runtime 数、失败次数和下一轮时间均写入数据库；进程重启后会恢复 `pending/running` Session，终态轮次会先结算再继续。通过质量阈值的 Wonder 会以 `insight` 类型回灌知识场，并创建 `derived_from` 图边，使后续轮次能够组合新旧知识。
+Autopilot 把每轮有限预算 Wander 串成持久循环。Campaign、当前 Session、累计 Candidate/Wonder/Runtime 数、失败次数和下一轮时间均写入数据库；进程重启后会恢复 `pending/running` Session，终态轮次会先结算再继续。只有同时满足总分、置信度、连贯性、证据潜力、低冗余、低任意性、低幻觉风险、低事实风险、低不确定性以及证据/反证/验证问题完整性的 Wonder 才会以 `insight` 类型回灌知识场，并创建 `derived_from` 图边。自动生成来源被明确标记为 `reviewed_hypothesis`，后续 Agent 不得把它当作事实证据；启动时会重审旧回灌项并隔离不合格内容。状态响应分别给出累计生成、当前接受和质量隔离数量。
 
 生产部署不得同时启用旧 Scheduler 和 Autopilot，以免形成两套无协调的后台写入。当前实现面向单实例；多副本必须增加数据库租约或外部队列后再启用。
 

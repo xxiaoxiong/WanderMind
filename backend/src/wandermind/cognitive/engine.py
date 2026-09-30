@@ -511,7 +511,11 @@ class WanderEngine:
                         seed_id=seed.id,
                         candidate_id=candidate.id,
                         type=candidate.candidate_type,
-                        statement=candidate.statement,
+                        statement=(
+                            review.expanded_idea
+                            if review_repaired and review is not None and review.expanded_idea
+                            else candidate.statement
+                        ),
                         explanation=(
                             review.expanded_idea
                             if review is not None and review.expanded_idea
@@ -551,6 +555,9 @@ class WanderEngine:
                                 else "runtime_review"
                                 if review_assisted_surface
                                 else "score_threshold"
+                            ),
+                            "original_statement": (
+                                candidate.statement if review_repaired else None
                             ),
                         },
                     )

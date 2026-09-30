@@ -105,7 +105,7 @@ Engine 在每个结构化 Step 后写入 Session checkpoint。`GET /wander/{id}/
 
 当前协调器面向单实例部署；进程重启会重新提交 `pending/running` Session，并跳过已持久化候选所对应的知识对。多实例部署仍应升级为带任务租约的外部持久队列，见限制文档。
 
-`AutopilotSupervisor` 在上述有限且可审计的 Session 外再包一层持久控制循环：选择尝试次数较少的新旧知识对，轮换六类探索策略，把通过阈值的 Wonder 回灌为 `insight`，失败时指数退避而不是结束 Campaign。控制 API 可随时读取进展并在检查点暂停、继续或停止；进程重启只丢失供应商内部尚未返回的一次调用，不丢失已提交的 Step、Candidate、Wonder 与累计计数。
+`AutopilotSupervisor` 在上述有限且可审计的 Session 外再包一层持久控制循环：选择尝试次数较少的新旧知识对，轮换六类探索策略，只把通过独立评审、事实风险、任意性、幻觉、冗余、置信度和证据完整性联合闸门的 Wonder 回灌为 `insight`，失败时指数退避而不是结束 Campaign。自动生成内容始终标记为待验证假设，不能充当事实证据；进程启动时会重新审计历史回灌项，并将不再满足闸门的内容设为 `rejected/incubating`，避免低质量假设继续污染探索前沿。控制 API 可随时读取进展并在检查点暂停、继续或停止；进程重启只丢失供应商内部尚未返回的一次调用，不丢失已提交的 Step、Candidate、Wonder 与累计计数。
 
 ## 安全不变量
 

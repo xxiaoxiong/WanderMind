@@ -32,6 +32,7 @@
 - Wander loading now shows elapsed seconds, and hosted Runtime retries/timeouts are bounded for predictable interaction latency.
 - Frontend score types now match the backend `WonderScores` contract; the usefulness row maps to `personal_relevance` instead of rendering `NaN`.
 - Render Blueprint now exposes the trial instance without Basic Auth by default; self-hosters can still enable the optional access gate with environment variables.
+- Autopilot now applies a strict cumulative-knowledge quality gate, rewrites low-risk Runtime revisions into explicitly testable hypotheses, labels generated knowledge as unverified, and quarantines historical feedback that fails current evidence/risk checks.
 
 ### Security
 

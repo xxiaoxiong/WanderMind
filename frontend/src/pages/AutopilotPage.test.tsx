@@ -45,6 +45,8 @@ const snapshot: AutopilotSnapshot = {
   latest_wonders: [],
   knowledge_count: 28,
   generated_knowledge_count: 6,
+  accepted_generated_knowledge_count: 5,
+  rejected_generated_knowledge_count: 1,
   worker_running: true,
 };
 

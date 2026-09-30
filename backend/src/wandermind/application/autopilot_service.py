@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from itertools import combinations
 
+from wandermind.application.autopilot_quality import (
+    AutopilotQualityPolicy,
+    QualityGateResult,
+)
 from wandermind.application.runtime_summary import RuntimeSummary, summarize_runtime
 from wandermind.application.wander_coordinator import WanderCoordinator
 from wandermind.cognitive.ingestion import DuplicateKnowledgeError, IngestionService
@@ -24,6 +28,7 @@ from wandermind.models import (
     WanderBudget,
     WanderSession,
     Wonder,
+    WonderStatus,
 )
 from wandermind.models.base import DomainModel, utc_now
 from wandermind.repositories.protocols import RepositoryBundle
@@ -53,6 +58,8 @@ class AutopilotSnapshot(DomainModel):
     latest_wonders: list[Wonder]
     knowledge_count: int = 0
     generated_knowledge_count: int = 0
+    accepted_generated_knowledge_count: int = 0
+    rejected_generated_knowledge_count: int = 0
     worker_running: bool = False
 
 
@@ -144,8 +151,11 @@ class AutopilotSeedPlanner:
             "3. 主动攻击类比的边界,拒绝仅靠词汇相似的连接;\n"
             "4. 与已有洞见比较,优先修正、反驳或产生二阶推进,而不是复述;\n"
             "5. 只有通过独立审查的结果才能进入长期知识场。\n\n"
-            f"知识 A | {left.title}\n{left.summary or left.content[:1000]}\n\n"
-            f"知识 B | {right.title}\n{right.summary or right.content[:1000]}\n\n"
+            "自动生成内容只是待验证假设,不能作为事实证据或精确数值的来源。\n\n"
+            f"知识 A | {_source_label(left)} | {left.title}\n"
+            f"{left.summary or left.content[:1000]}\n\n"
+            f"知识 B | {_source_label(right)} | {right.title}\n"
+            f"{right.summary or right.content[:1000]}\n\n"
             f"最近的高质量洞见:\n{prior_context}"
         )[:20_000]
 
@@ -165,6 +175,7 @@ class AutopilotSupervisor:
         cycle_delay_seconds: float = 5.0,
         promotion_threshold: float = 0.58,
         planner: AutopilotSeedPlanner | None = None,
+        quality_policy: AutopilotQualityPolicy | None = None,
     ) -> None:
         self.repositories = repositories
         self.coordinator = coordinator
@@ -177,6 +188,7 @@ class AutopilotSupervisor:
         self.cycle_delay_seconds = cycle_delay_seconds
         self.promotion_threshold = promotion_threshold
         self.planner = planner or AutopilotSeedPlanner()
+        self.quality_policy = quality_policy or AutopilotQualityPolicy()
         self._task: asyncio.Task[None] | None = None
         self._lock = asyncio.Lock()
 
@@ -190,6 +202,7 @@ class AutopilotSupervisor:
                     metadata={"auto_started": True},
                 )
             )
+        await self._reconcile_generated_knowledge()
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._loop(), name="wandermind-autopilot")
 
@@ -252,15 +265,27 @@ class AutopilotSupervisor:
                     current_session.id
                 )
         knowledge = await self.repositories.knowledge.list(offset=0, limit=10_000)
-        latest_wonders = await self._campaign_wonders(campaign, limit=12)
+        active_knowledge = [item for item in knowledge if item.status is KnowledgeStatus.ACTIVE]
+        generated_knowledge = [item for item in knowledge if item.source == "autopilot"]
+        latest_wonders = await self._campaign_wonders(
+            campaign,
+            limit=12,
+            accepted_only=True,
+        )
         return AutopilotSnapshot(
             campaign=campaign,
             current_session=current_session,
             current_seed=current_seed,
             current_runtime=summarize_runtime(self.configured_runtime, runtime_sessions),
             latest_wonders=latest_wonders,
-            knowledge_count=len(knowledge),
-            generated_knowledge_count=sum(item.source == "autopilot" for item in knowledge),
+            knowledge_count=len(active_knowledge),
+            generated_knowledge_count=len(generated_knowledge),
+            accepted_generated_knowledge_count=sum(
+                item.status is KnowledgeStatus.ACTIVE for item in generated_knowledge
+            ),
+            rejected_generated_knowledge_count=sum(
+                item.status is KnowledgeStatus.REJECTED for item in generated_knowledge
+            ),
             worker_running=self._task is not None and not self._task.done(),
         )
 
@@ -300,7 +325,11 @@ class AutopilotSupervisor:
     async def _start_cycle(self, campaign: AutopilotCampaign) -> None:
         items = await self.repositories.knowledge.list(offset=0, limit=10_000)
         seeds = await self.repositories.seeds.list(offset=0, limit=10_000)
-        wonders = await self._campaign_wonders(campaign, limit=10_000)
+        wonders = await self._campaign_wonders(
+            campaign,
+            limit=10_000,
+            accepted_only=True,
+        )
         seed = await self.planner.plan(campaign, items, seeds, wonders)
         if seed is None:
             campaign.last_error = "insufficient_knowledge"
@@ -377,9 +406,17 @@ class AutopilotSupervisor:
     ) -> int:
         promoted = 0
         for wonder in wonders:
-            if wonder.scores.total < self.promotion_threshold:
-                continue
             if wonder.metadata.get("autopilot_promoted_knowledge_id"):
+                continue
+            quality = self.quality_policy.evaluate(
+                wonder,
+                configured_threshold=self.promotion_threshold,
+            )
+            wonder.metadata["autopilot_quality_gate"] = quality.as_metadata()
+            if not quality.accepted:
+                wonder.metadata["autopilot_promotion_skipped"] = "quality_gate"
+                wonder.status = WonderStatus.INCUBATING
+                await self.repositories.wonders.update(wonder)
                 continue
             evidence = "\n".join(f"- {value}" for value in wonder.supporting_evidence)
             counter = "\n".join(f"- {value}" for value in wonder.counter_evidence)
@@ -403,6 +440,9 @@ class AutopilotSupervisor:
                         "source_wonder_id": str(wonder.id),
                         "source_session_id": str(wonder.session_id),
                         "quality_score": wonder.scores.total,
+                        "epistemic_status": "reviewed_hypothesis",
+                        "autopilot_quality_gate": quality.as_metadata(),
+                        "runtime_review": wonder.metadata.get("runtime_review"),
                     },
                 )
             except DuplicateKnowledgeError as error:
@@ -456,6 +496,7 @@ class AutopilotSupervisor:
         campaign: AutopilotCampaign | None,
         *,
         limit: int,
+        accepted_only: bool = False,
     ) -> list[Wonder]:
         if campaign is None:
             return []
@@ -466,7 +507,59 @@ class AutopilotSupervisor:
             if session.metadata.get("autopilot_campaign_id") == str(campaign.id)
         }
         wonders = await self.repositories.wonders.list(offset=0, limit=10_000)
-        return [wonder for wonder in wonders if wonder.session_id in session_ids][:limit]
+        results = [wonder for wonder in wonders if wonder.session_id in session_ids]
+        if accepted_only:
+            results = [
+                wonder
+                for wonder in results
+                if wonder.status in {WonderStatus.ACTIVE, WonderStatus.SAVED}
+                and _quality_gate_accepted(wonder)
+            ]
+        return results[:limit]
+
+    async def _reconcile_generated_knowledge(self) -> None:
+        knowledge = await self.repositories.knowledge.list(offset=0, limit=10_000)
+        generated = [item for item in knowledge if item.source == "autopilot"]
+        if not generated:
+            return
+        wonders = await self.repositories.wonders.list(offset=0, limit=10_000)
+        wonder_by_id = {str(wonder.id): wonder for wonder in wonders}
+        accepted = 0
+        rejected = 0
+        for item in generated:
+            source_wonder_id = item.metadata.get("source_wonder_id")
+            wonder = wonder_by_id.get(str(source_wonder_id))
+            quality = (
+                self.quality_policy.evaluate(
+                    wonder,
+                    configured_threshold=self.promotion_threshold,
+                )
+                if wonder is not None
+                else QualityGateResult(False, ("source_wonder_missing",))
+            )
+            item.metadata["autopilot_quality_gate"] = quality.as_metadata()
+            if quality.accepted:
+                accepted += 1
+                item.metadata["epistemic_status"] = "reviewed_hypothesis"
+            else:
+                rejected += 1
+                item.status = KnowledgeStatus.REJECTED
+                item.metadata["epistemic_status"] = "quality_rejected"
+                item.metadata["autopilot_quality_rejected_at"] = utc_now().isoformat()
+            await self.repositories.knowledge.update(item)
+            if wonder is None:
+                continue
+            wonder.metadata["autopilot_quality_gate"] = quality.as_metadata()
+            if not quality.accepted:
+                wonder.status = WonderStatus.INCUBATING
+                wonder.metadata["autopilot_promotion_retracted"] = True
+            await self.repositories.wonders.update(wonder)
+        campaign = await self._latest_campaign()
+        if campaign is not None:
+            campaign.metadata["quality_gate_version"] = 1
+            campaign.metadata["active_generated_knowledge"] = accepted
+            campaign.metadata["rejected_generated_knowledge"] = rejected
+            await self._save(campaign)
 
     async def _latest_campaign(self) -> AutopilotCampaign | None:
         campaigns = await self.repositories.autopilot_campaigns.list(offset=0, limit=1)
@@ -491,3 +584,12 @@ class AutopilotSupervisor:
             seconds=min(300, 2 ** min(campaign.consecutive_failures, 6) * 5)
         )
         await self._save(campaign)
+
+
+def _quality_gate_accepted(wonder: Wonder) -> bool:
+    value = wonder.metadata.get("autopilot_quality_gate")
+    return isinstance(value, dict) and value.get("accepted") is True
+
+
+def _source_label(item: KnowledgeItem) -> str:
+    return "待验证自动生成假设" if item.source == "autopilot" else "原始知识"

@@ -179,6 +179,8 @@ export interface AutopilotSnapshot {
   latest_wonders: Wonder[];
   knowledge_count: number;
   generated_knowledge_count: number;
+  accepted_generated_knowledge_count: number;
+  rejected_generated_knowledge_count: number;
   worker_running: boolean;
 }
 

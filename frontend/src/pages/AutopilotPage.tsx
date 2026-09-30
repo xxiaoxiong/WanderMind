@@ -109,7 +109,7 @@ export function AutopilotPage() {
             <Metric label={copy.candidates} value={campaign?.total_candidates ?? 0} />
             <Metric label={copy.wonders} value={campaign?.total_wonders ?? 0} />
             <Metric label={copy.runtimeCalls} value={campaign?.total_runtime_calls ?? 0} />
-            <Metric label={copy.promoted} value={campaign?.promoted_knowledge_count ?? 0} />
+            <Metric label={copy.promoted} value={snapshot.accepted_generated_knowledge_count} />
             <Metric label={copy.knowledge} value={snapshot.knowledge_count} />
           </section>
 
@@ -144,7 +144,12 @@ export function AutopilotPage() {
           <section className="autopilot-results">
             <div className="section-heading">
               <div><span>{copy.accumulated}</span><h2>{copy.latestTitle}</h2></div>
-              <strong>{snapshot.generated_knowledge_count} {copy.generatedKnowledge}</strong>
+              <strong>
+                {snapshot.accepted_generated_knowledge_count} {copy.generatedKnowledge}
+                {snapshot.rejected_generated_knowledge_count
+                  ? ` · ${snapshot.rejected_generated_knowledge_count} ${copy.quarantinedKnowledge}`
+                  : ""}
+              </strong>
             </div>
             <div className="wonder-list">
               {snapshot.latest_wonders.map((wonder, index) => (
@@ -196,6 +201,7 @@ const english = {
   accumulated: "Cumulative discoveries",
   latestTitle: "High-quality results that survived review",
   generatedKnowledge: "generated knowledge items",
+  quarantinedKnowledge: "quality-quarantined",
   noWonders: "No result has crossed the quality threshold yet. The trace and rejected candidates remain auditable while exploration continues.",
 } as const;
 
@@ -232,5 +238,6 @@ const chinese = {
   accumulated: "累积发现",
   latestTitle: "通过质量审查的高价值结果",
   generatedKnowledge: "条自动生成知识",
+  quarantinedKnowledge: "条质量隔离",
   noWonders: "暂时没有结果越过质量阈值。探索会继续，轨迹和被淘汰候选仍保留供审计。",
 } satisfies Record<keyof typeof english, string>;

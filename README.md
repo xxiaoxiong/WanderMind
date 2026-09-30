@@ -17,7 +17,7 @@ WanderMind 是一个**可控、可解释、可评估**的认知漫游引擎。�
 - 多维评分、冗余/任意性/幻觉风险惩罚、阈值化静默机制。
 - 可替换 RuntimeAdapter；Mock、Codex App Server、OpenAI-compatible 适配器及会话、耗时、调用成本持久化。
 - Explorer / Evidence / Independent Critic 深度评估；无引用时绝不伪造证据。
-- 持久 Autopilot 主管循环：连续发起深度探索、重启恢复、失败退避，并把达标 Wonder 回灌为下一轮可用知识。
+- 持久 Autopilot 主管循环：连续发起深度探索、重启恢复、失败退避，并且只把通过独立评审、事实风险、任意性、幻觉、冗余和证据完整性联合闸门的 Wonder 回灌为下一轮可用知识；旧回灌项会在启动时重新审计并隔离不合格内容。
 - APScheduler 孵化、跨时间配对、近期知识 Seed、Re-Wonder 血缘。
 - FastAPI + SQLAlchemy + PostgreSQL/pgvector；SQLite 可用于本地与测试。
 - React 19 五类 UI：Inbox、Wander、Wonders、Wonder Detail、Autopilot；支持中英文与亮/暗主题持久化切换。
