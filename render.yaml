@@ -7,7 +7,6 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 300
     envVars:
       - key: WANDERMIND_ENV
         value: prod
