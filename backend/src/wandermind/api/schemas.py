@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from wandermind.application.graph_service import GraphView
 from wandermind.application.runtime_summary import RuntimeSummary
+from wandermind.application.service_guardian import ServiceGuardianSnapshot
 from wandermind.models import (
     Candidate,
     Feedback,
@@ -116,6 +117,8 @@ class HealthResponse(BaseModel):
     environment: str
     storage: str
     runtime: str
+    autopilot_worker_running: bool
+    guardian: ServiceGuardianSnapshot
 
 
 class KnowledgeListResponse(BaseModel):

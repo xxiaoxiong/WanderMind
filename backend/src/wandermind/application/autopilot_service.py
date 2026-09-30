@@ -192,6 +192,10 @@ class AutopilotSupervisor:
         self._task: asyncio.Task[None] | None = None
         self._lock = asyncio.Lock()
 
+    @property
+    def worker_running(self) -> bool:
+        return self._task is not None and not self._task.done()
+
     async def start(self) -> None:
         if self.auto_start and await self._latest_campaign() is None:
             await self.repositories.autopilot_campaigns.create(
@@ -205,6 +209,12 @@ class AutopilotSupervisor:
         await self._reconcile_generated_knowledge()
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._loop(), name="wandermind-autopilot")
+
+    async def ensure_running(self) -> bool:
+        if self.worker_running:
+            return False
+        await self.start()
+        return self.worker_running
 
     async def shutdown(self) -> None:
         task = self._task
@@ -286,7 +296,7 @@ class AutopilotSupervisor:
             rejected_generated_knowledge_count=sum(
                 item.status is KnowledgeStatus.REJECTED for item in generated_knowledge
             ),
-            worker_running=self._task is not None and not self._task.done(),
+            worker_running=self.worker_running,
         )
 
     async def _loop(self) -> None:

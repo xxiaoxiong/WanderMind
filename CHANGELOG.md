@@ -8,6 +8,7 @@
 - Quality-compounding exploration that promotes reviewed Wonders into `insight` knowledge with `derived_from` lineage, then prioritizes mixed old/new knowledge pairs in later cycles.
 - Autopilot dashboard with live checkpoints, cumulative candidates/Wonders/Runtime calls, generated knowledge, recent discoveries, and pause/resume/stop controls.
 - Scheduled public keepalive and supervisor verification for the Render trial deployment.
+- In-process service guardian that restarts a dead Autopilot worker, emits health telemetry, and self-pings the public health endpoint below the Render idle threshold.
 - Persistent background Wander sessions with startup recovery, live checkpoint SSE, reconnect cursors, true cancellation and result polling.
 - Deep exploration budgets for minimum candidate comparison, multiple target Wonders, stagnation patience and final ranked alternatives.
 - Agent-backed candidate synthesis in the primary Wander flow, followed by real evidence and critic calls for promising candidates.

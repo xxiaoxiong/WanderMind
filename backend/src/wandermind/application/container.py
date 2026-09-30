@@ -30,6 +30,7 @@ from wandermind.application.incubation_service import (
     IncubationService,
     ReWonderService,
 )
+from wandermind.application.service_guardian import ServiceGuardian
 from wandermind.application.wander_coordinator import WanderCoordinator
 from wandermind.application.wonder_service import FeedbackService, WonderPromotionService
 from wandermind.cognitive.embedding import HashEmbeddingAdapter
@@ -69,6 +70,7 @@ class ApplicationContainer:
     rewonder: ReWonderService
     scheduler: IncubationScheduler
     autopilot: AutopilotSupervisor
+    guardian: ServiceGuardian
     database_engine: AsyncEngine | None = None
 
 
@@ -148,6 +150,13 @@ def build_container(
         cycle_delay_seconds=settings.autopilot_cycle_delay_seconds,
         promotion_threshold=settings.wonder_threshold,
     )
+    guardian = ServiceGuardian(
+        autopilot.ensure_running,
+        keepalive_url=settings.keepalive_url,
+        check_interval_seconds=settings.guardian_check_interval_seconds,
+        keepalive_interval_seconds=settings.keepalive_interval_seconds,
+        keepalive_timeout_seconds=settings.keepalive_timeout_seconds,
+    )
     return ApplicationContainer(
         settings=settings,
         repositories=selected_repositories,
@@ -170,6 +179,7 @@ def build_container(
             interval_minutes=settings.incubation_interval_minutes,
         ),
         autopilot=autopilot,
+        guardian=guardian,
         database_engine=database_engine,
     )
 

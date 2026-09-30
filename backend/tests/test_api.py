@@ -42,6 +42,16 @@ async def test_health_and_error_contracts(
         "environment": "test",
         "storage": "memory",
         "runtime": "mock",
+        "autopilot_worker_running": False,
+        "guardian": {
+            "running": False,
+            "keepalive_enabled": False,
+            "last_check_at": None,
+            "last_keepalive_success_at": None,
+            "last_error": None,
+            "consecutive_failures": 0,
+            "autopilot_restarts": 0,
+        },
     }
 
     invalid = await client.post("/api/v1/knowledge", json={"content": ""})

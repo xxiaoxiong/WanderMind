@@ -13,4 +13,4 @@
 11. `render.yaml` 的免费 PostgreSQL 仅适合试用，会在创建 30 天后到期；长期使用必须升级数据库并配置备份。
 12. OpenAI-compatible Runtime 当前面向 `/chat/completions` 协议；不同供应商的专有参数、Responses API、工具调用和原生流式 token 尚未适配。
 13. 双语切换覆盖产品 UI 与模型深探提示，用户导入的知识、历史 Wonder 和 API 错误正文不会被自动翻译。
-14. GitHub Actions 定时探测可降低 Render 免费 Web 休眠概率，但不是运行 SLA；定时任务、免费实例或服务端流量都可能被平台暂停。真正长期无人值守需要付费常驻计算与持久数据库。
+14. 应用内自请求和 GitHub Actions 外部探测可共同降低 Render 免费 Web 休眠概率，但不是运行 SLA；定时任务、免费实例或服务端流量都可能被平台暂停。真正长期无人值守仍需要付费常驻计算与持久数据库。

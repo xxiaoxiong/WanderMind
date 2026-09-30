@@ -42,6 +42,12 @@ services:
         value: "5"
       - key: WANDERMIND_AUTOPILOT_CYCLE_DELAY_SECONDS
         value: "5"
+      - key: WANDERMIND_KEEPALIVE_URL
+        value: https://wandermind-p6jg.onrender.com/health
+      - key: WANDERMIND_KEEPALIVE_INTERVAL_SECONDS
+        value: "300"
+      - key: WANDERMIND_GUARDIAN_CHECK_INTERVAL_SECONDS
+        value: "30"
 
 databases:
   - name: wandermind-db

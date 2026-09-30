@@ -13,7 +13,7 @@ docker compose down
 
 ## 健康与指标
 
-- Liveness：`GET /health`，期望 `status=ok`。
+- Liveness：`GET /health`，期望 `status=ok`、`autopilot_worker_running=true`、`guardian.running=true`；启用托管保活时还应满足 `guardian.keepalive_enabled=true`，并观察 `last_keepalive_success_at` 持续更新。
 - Metrics：`GET /metrics`。
 - API Docs：`GET /docs`。
 - UI probe：Nginx `/healthz`。
@@ -25,7 +25,7 @@ docker compose down
 - Runtime timeout / malformed / unavailable。
 - PostgreSQL 容量、连接和慢查询。
 - Scheduler 重复执行或长时间无执行。
-- `GET /api/v1/autopilot/status` 中 `worker_running=false`、连续失败增长或 `last_cycle_completed_at` 长时间不推进。
+- `GET /api/v1/autopilot/status` 中 `worker_running=false`、连续失败增长或 `last_cycle_completed_at` 长时间不推进；`GET /health` 中 Guardian 连续失败或自请求成功时间长期不更新。
 
 线上 Autopilot 快速检查：
 

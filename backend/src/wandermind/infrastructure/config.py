@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     enable_autopilot: bool = False
     autopilot_poll_interval_seconds: float = Field(default=5.0, ge=1.0, le=300.0)
     autopilot_cycle_delay_seconds: float = Field(default=5.0, ge=0.0, le=3_600.0)
+    guardian_check_interval_seconds: float = Field(default=30.0, ge=1.0, le=300.0)
+    keepalive_url: str | None = None
+    keepalive_interval_seconds: float = Field(default=300.0, ge=60.0, le=840.0)
+    keepalive_timeout_seconds: float = Field(default=30.0, gt=0.0, le=120.0)
     autopilot_objective: str = Field(
         default=(
             "持续检查知识场中的隐含假设、矛盾、跨领域机制和二阶后果;产出可验证、"
@@ -91,6 +95,16 @@ class Settings(BaseSettings):
         normalized = value.rstrip("/")
         if not normalized.startswith(("https://", "http://")):
             raise ValueError("LLM base URL must use HTTP or HTTPS")
+        return normalized
+
+    @field_validator("keepalive_url")
+    @classmethod
+    def normalize_keepalive_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized.startswith(("https://", "http://")):
+            raise ValueError("keepalive URL must use HTTP or HTTPS")
         return normalized
 
 

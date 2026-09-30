@@ -20,9 +20,9 @@ Blueprint 将 Render 的 `connectionString` 注入 `WANDERMIND_DATABASE_URL`。�
 
 ## 免费层边界
 
-- 免费 Web Service 在 15 分钟没有入站流量后会休眠；仓库的 `keepalive.yml` 每 10 分钟访问 Autopilot 状态以降低休眠概率，并验证主管任务仍在线。
+- 免费 Web Service 在 15 分钟没有入站流量后会休眠；应用内 `ServiceGuardian` 每 30 秒检查并按需重启 Autopilot worker，Blueprint 每 5 分钟通过公网 `/health` 自请求一次，仓库的 `keepalive.yml` 每 10 分钟再从 GitHub Actions 外部探测 Autopilot 状态。
 - 免费 PostgreSQL 数据库创建 30 天后到期，不适合长期保存个人知识。
-- GitHub Actions 定时任务可能因仓库长期无活动、平台延迟或配额停止，Render 也可能限制异常服务端流量，因此免费层保活不等于长期运行 SLA。
+- 进程内自请求与 GitHub Actions 定时任务都可能受平台策略、网络、配额或实例重启影响，因此免费层双重保活仍不等于长期运行 SLA。
 - 长期使用应升级 Web Service 与数据库计划、启用平台备份，并定期验证 `pg_dump` 恢复。
 - Autopilot 仅允许一个 Web Service 副本；扩容前关闭它或实现数据库租约/leader election。线上 Blueprint 已关闭旧 Scheduler。
 

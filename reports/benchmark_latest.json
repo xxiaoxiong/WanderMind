@@ -3,10 +3,10 @@
   "case_count": 12,
   "metrics": {
     "wonder_hit_proxy": 1.0,
-    "high_value_proxy": 0.8333333333333334,
+    "high_value_proxy": 1.0,
     "obvious_rate": 0.0,
     "randomness_rate": 0.0,
-    "redundancy_rate": 0.11196715583508034,
+    "redundancy_rate": 0.05596086652690426,
     "duplicate_rate": 0.0,
     "cross_domain_yield": 1.0,
     "average_candidates": 1.5,
@@ -16,7 +16,7 @@
     {
       "id": "backpressure-pheromone",
       "label": "interesting",
-      "session_id": "4021dfd6-c22d-43e2-8411-73c2f81ca603",
+      "session_id": "7e6dfcc2-7685-460c-a716-c672cf98e137",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
@@ -26,277 +26,277 @@
         "abstraction"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "02317425-7e84-43b6-aebc-5706a4db8cd3",
-        "2b4cc298-f6ca-43cf-8adb-71ac6cfd1ac1"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "169d5eb6-372e-465b-8b15-a7bf3efb8cc0",
+        "60434386-2068-47de-b430-cc97db5fd438"
       ],
       "patch_count": 218
     },
     {
       "id": "immune-incident-memory",
       "label": "interesting",
-      "session_id": "2489fee3-e1ce-4a2e-8fe2-89bf987bf3a5",
+      "session_id": "58889ce2-496a-4db6-899a-25cf22240a7e",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6998326193798152,
+      "top_score": 0.7144335627760418,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "73afc464-c3a3-4b0c-a64f-8b402f13af8e",
-        "bac48a06-2e47-4b74-a45a-a42ddf0826f9"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "3ce0d59e-c8e3-47a0-af2e-abb27d4d1c73",
+        "a0179788-b3f4-4b18-93d7-b4d252e8d243"
       ],
       "patch_count": 218
     },
     {
       "id": "syncopation-attention",
       "label": "interesting",
-      "session_id": "0fe2af92-35d5-4913-9406-4e423698885d",
+      "session_id": "2f09aeb8-3323-46ed-9d70-7f5f034a58ae",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6441677041067339,
+      "top_score": 0.6587686475029604,
       "operators": [
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "fb8242cf-bd19-475e-9296-99b4c6384023",
-        "58205385-944b-4b16-bf9c-b511f3cd3099"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "9b7c5b36-46eb-4e16-8884-039a918c4bc9",
+        "08d003f5-c8f7-42d1-bf8b-2d23a2fc0bfb"
       ],
       "patch_count": 218
     },
     {
       "id": "wetlands-circuit-breakers",
       "label": "interesting",
-      "session_id": "e944f8f5-69d7-45c3-8173-71b3da9c920f",
+      "session_id": "70f3656b-08da-498a-bfa4-31c24e51189b",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.7296814985849379,
+      "top_score": 0.7442824419811643,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "25a759c2-2416-447d-8ddc-2ea64ab0fee5",
-        "9be5621e-6c76-4305-bb43-69f79b9359c7"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "a35bed6e-3cfc-4a61-a569-65d4cd687a79",
+        "e2fc9f2e-ffc5-490a-98b2-a6907cb0886d"
       ],
       "patch_count": 218
     },
     {
       "id": "joinery-governance",
       "label": "interesting",
-      "session_id": "54b5013b-9be7-440d-9014-20b54eefe67d",
+      "session_id": "a73555c2-67ab-4622-a895-6194d9255498",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.6894081055082661,
+      "top_score": 0.7040090489044927,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "87c15fd1-9096-4d69-abcd-f2887f2b55f9",
-        "efd1423a-09e1-4ae2-8fa4-a104fb84dfee"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "f5877919-450d-4047-98f4-068ce6113376",
+        "b117aa10-8047-4cab-8150-8b33fdbbee53"
       ],
       "patch_count": 218
     },
     {
       "id": "spacing-urban",
       "label": "interesting",
-      "session_id": "8dc9d891-edef-4d3b-a435-1fbc74b5fe33",
+      "session_id": "1965b779-381d-4704-8ec8-88f69ecf4e46",
       "status": "completed",
       "stop_reason": "high_value_found",
       "candidate_count": 1,
       "wonder_count": 1,
-      "top_score": 0.7297934255403484,
+      "top_score": 0.7411339915780844,
       "operators": [
         "abstraction"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "36544fb9-fb59-4d52-b62a-26e83206ca7b",
-        "73ec0641-2541-4227-99fe-89e31f9ffad1"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "0e988004-80dd-4f01-ab5d-9e2b7b918a32",
+        "350f9edc-c527-4130-82e3-845c7b7306c3"
       ],
       "patch_count": 218
     },
     {
       "id": "feedback-feedback",
       "label": "obvious",
-      "session_id": "7111d443-d7b5-4df0-b7b2-eb744d69f16d",
+      "session_id": "3d2600b8-42f7-4297-8a8e-632dff2d8565",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.5365100840236103,
+      "top_score": 0.5423940462877612,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "362bfc80-1f72-4e26-b812-5bd90a6591b1",
-        "ed44a22f-aeae-4d73-b16a-d8cb8ef58554",
-        "409f2eb4-e0dd-4f0a-bc9b-6666b97a5719"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "e71416c6-51b8-46e7-91f7-f74bc873f988",
+        "2892cbf9-a012-48f7-96a8-0917ab8e1158",
+        "5939885f-fe0d-440c-858d-a15dc30b66b7"
       ],
       "patch_count": 218
     },
     {
       "id": "networks-networks",
       "label": "obvious",
-      "session_id": "015d5e0a-594e-49fd-ad96-2a57893e297e",
+      "session_id": "4052e6bf-1218-4d58-becc-492dff28473e",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.535952681208964,
+      "top_score": 0.5418366434731149,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "b77d35e5-feb7-4d66-bdd3-abdc4ce69f81",
-        "409f2eb4-e0dd-4f0a-bc9b-6666b97a5719",
-        "73ec0641-2541-4227-99fe-89e31f9ffad1"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "5e701de4-8985-4320-a26a-5045ec53acef",
+        "5939885f-fe0d-440c-858d-a15dc30b66b7",
+        "350f9edc-c527-4130-82e3-845c7b7306c3"
       ],
       "patch_count": 218
     },
     {
       "id": "random-color-consensus",
       "label": "nonsense",
-      "session_id": "51fd1534-4ca4-4431-8d38-bee2658c4257",
+      "session_id": "118e9d92-bc46-48a9-b6d4-ba6e5467c48b",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.6129212126424677,
+      "top_score": 0.6275221560386941,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "c5bf8821-81bb-4180-9c50-aecc716c2d04",
-        "ed44a22f-aeae-4d73-b16a-d8cb8ef58554"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "78511ac7-756c-461b-b8eb-8dfbfc7446b3",
+        "2892cbf9-a012-48f7-96a8-0917ab8e1158"
       ],
       "patch_count": 218
     },
     {
       "id": "tempo-tax-weather",
       "label": "nonsense",
-      "session_id": "96c38ab0-241f-431a-b9fc-ff004773e230",
+      "session_id": "94a98c0e-1590-47fd-9ef8-cb66e4660ca8",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.5512577497297598,
+      "top_score": 0.5658586931259862,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "ac5d4e9f-cdd7-41a7-8361-ed2743372b92",
-        "3dc7799b-8c22-42d8-8d52-a7114e36f2cd",
-        "0d24d9eb-39b7-437a-88df-4669157feae8"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "697f2e83-61db-4b0f-87cb-d5ebd7744eeb",
+        "21a23cb4-095d-4ba8-9b69-4d4b385c1ede",
+        "6f4944db-2526-4e00-a3a8-e9ab06302ca5"
       ],
       "patch_count": 218
     },
     {
       "id": "duplicate-backpressure",
       "label": "duplicate",
-      "session_id": "4956685e-5f70-42a2-bd9f-e6f9af8d2f58",
+      "session_id": "caf65b2d-d01b-4be9-9068-19ecda205b44",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.6164284875940037,
+      "top_score": 0.6259549026883433,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "02317425-7e84-43b6-aebc-5706a4db8cd3",
-        "0446e6b5-4818-468d-8e6c-c46bf60ad58a",
-        "f061d0eb-926e-4013-aa35-ed42a7f01343"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "169d5eb6-372e-465b-8b15-a7bf3efb8cc0",
+        "8c23ed88-6e52-4a7a-8c26-26b85d920df4",
+        "de307533-07da-421b-a35d-e998af487ec9"
       ],
       "patch_count": 218
     },
     {
       "id": "duplicate-spacing",
       "label": "duplicate",
-      "session_id": "15036c55-94b7-41ee-9581-015808e30383",
+      "session_id": "95111b0c-3d4c-4d2a-974b-c30bd151c1a0",
       "status": "completed",
       "stop_reason": "runtime_budget_exhausted",
       "candidate_count": 2,
       "wonder_count": 0,
-      "top_score": 0.47951552586312085,
+      "top_score": 0.48904194095746056,
       "operators": [
         "abstraction",
         "conceptual_blend"
       ],
       "wander_path": [
-        "2c927dd6-e064-43b8-ae1f-063eb71ab942",
-        "399f4012-a7d5-44c1-b236-edf9fad1ffc8",
-        "c81920ca-7d10-4563-bfda-34ee46f9107b",
-        "a7850599-8d99-4431-958c-6328a956d1ba",
-        "56c44762-ae97-4e0f-9b03-b8585f384e20",
-        "36544fb9-fb59-4d52-b62a-26e83206ca7b",
-        "c6818141-55f6-44b2-95b3-f0bd918f6b5c",
-        "f871042a-24c6-4cdc-b9c7-9a9e57f7ed97"
+        "cee260b7-ecf1-45d8-833b-2f581470cb7d",
+        "80c966a4-9002-4123-b0da-df44f9d99423",
+        "6b681274-3861-4069-8d38-efb2f66ca563",
+        "2cafceaf-33b8-463d-850a-b9f481e673ed",
+        "37789fd8-664a-43b2-898a-fbb85981e108",
+        "0e988004-80dd-4f01-ab5d-9e2b7b918a32",
+        "01504dcb-59cf-4d58-9397-4f9f1016256d",
+        "288599a7-ba65-4f43-8357-971f4bddab48"
       ],
       "patch_count": 218
     }

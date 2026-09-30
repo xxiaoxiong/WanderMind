@@ -75,7 +75,7 @@ Compose 会启动 pgvector/PostgreSQL、执行 Alembic 迁移、启动 API 与 N
 2. 打开 `/health` 检查服务状态。
 3. 如需私有单用户部署，可自行设置 `WANDERMIND_ACCESS_USERNAME` 与非空的 `WANDERMIND_ACCESS_PASSWORD` 启用可选 Basic Auth。
 
-仓库的 GitHub Actions 每 10 分钟探测 Autopilot 状态，用于降低免费 Web Service 因无入站流量休眠的概率；它不是可用性承诺。Render 免费 PostgreSQL 会在创建 30 天后到期，因此只适合试用。真正长期无人值守运行应切换付费 Web Service 与付费数据库并配置备份。完整步骤见 `docs/deployment.md`。
+线上进程内置 `ServiceGuardian`：每 30 秒检查 Autopilot 主管任务，异常退出时自动重启；Render Blueprint 每 5 分钟通过公网 `/health` 自请求一次，GitHub Actions 每 10 分钟再做外部兜底探测，以尽量避免免费 Web Service 因无入站流量休眠。该组合仍不是平台可用性承诺。Render 免费 PostgreSQL 会在创建 30 天后到期，因此只适合试用；真正长期无人值守运行应切换付费 Web Service 与付费数据库并配置备份。完整步骤见 `docs/deployment.md`。
 
 ## 本地开发
 

@@ -44,10 +44,12 @@ def create_app(
             await create_schema(selected_container.database_engine)
         await selected_container.wander_coordinator.recover()
         await selected_container.autopilot.start()
+        await selected_container.guardian.start()
         if selected_settings.enable_scheduler:
             selected_container.scheduler.start()
         yield
         selected_container.scheduler.shutdown()
+        await selected_container.guardian.shutdown()
         await selected_container.autopilot.shutdown()
         await selected_container.wander_coordinator.shutdown()
         await selected_container.runtime.close()
@@ -132,6 +134,8 @@ def create_app(
             environment=selected_settings.env,
             storage=storage,
             runtime=selected_settings.runtime_adapter,
+            autopilot_worker_running=selected_container.autopilot.worker_running,
+            guardian=selected_container.guardian.snapshot(),
         )
 
     @app.get("/metrics", include_in_schema=False)
