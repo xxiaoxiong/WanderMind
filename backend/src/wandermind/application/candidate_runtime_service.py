@@ -11,7 +11,7 @@ from wandermind.cognitive.runtime_services import (
     CandidateReviewResult,
     CandidateSynthesisResult,
 )
-from wandermind.models import Candidate, KnowledgeItem
+from wandermind.models import Candidate, KnowledgeItem, KnowledgeStatus
 from wandermind.models.base import DomainModel
 from wandermind.runtime import (
     AgentRuntimeAdapter,
@@ -32,11 +32,16 @@ class CandidateSynthesisOutput(DomainModel):
     questions: list[str] = Field(max_length=8)
 
 
+class ReviewEvidenceClaim(DomainModel):
+    claim: str = Field(min_length=4, max_length=2_000)
+    source_ref: str = Field(min_length=1, max_length=2_048)
+
+
 class CandidateReviewOutput(DomainModel):
+    revised_statement: str | None = Field(min_length=8, max_length=2_000)
     expanded_idea: str = Field(min_length=20, max_length=6_000)
-    supporting_evidence: list[str] = Field(max_length=8)
-    counter_evidence: list[str] = Field(max_length=8)
-    source_refs: list[str] = Field(max_length=8)
+    supporting_evidence: list[ReviewEvidenceClaim] = Field(max_length=8)
+    counter_evidence: list[ReviewEvidenceClaim] = Field(max_length=8)
     uncertainty: float = Field(ge=0.0, le=1.0)
     weaknesses: list[str] = Field(max_length=8)
     obviousness: float = Field(ge=0.0, le=1.0)
@@ -174,7 +179,7 @@ class RuntimeCandidateReviewer:
                 max_retries=self.max_retries,
             )
             output = CandidateReviewOutput.model_validate(result.structured)
-            output = _sanitize_review(output, context)
+            output, supporting_refs, counter_refs = _sanitize_review(output, context)
         except (RuntimeErrorBase, ValidationError) as error:
             return CandidateReviewResult(
                 weaknesses=[f"Agent Runtime review failed: {type(error).__name__}"],
@@ -184,10 +189,13 @@ class RuntimeCandidateReviewer:
         finally:
             await _close_session(self.runtime, session)
         return CandidateReviewResult(
+            revised_statement=output.revised_statement,
             expanded_idea=output.expanded_idea,
-            supporting_evidence=output.supporting_evidence,
-            counter_evidence=output.counter_evidence,
-            source_refs=output.source_refs,
+            supporting_evidence=[claim.claim for claim in output.supporting_evidence],
+            counter_evidence=[claim.claim for claim in output.counter_evidence],
+            supporting_source_refs=supporting_refs,
+            counter_source_refs=counter_refs,
+            source_refs=list(dict.fromkeys([*supporting_refs, *counter_refs])),
             uncertainty=output.uncertainty,
             weaknesses=output.weaknesses,
             obviousness=output.obviousness,
@@ -246,6 +254,7 @@ def _review_prompt(candidate: Candidate, context: list[KnowledgeItem]) -> str:
             "topics": item.topics,
             "source": item.source,
             "epistemic_status": item.metadata.get("epistemic_status", "source_knowledge"),
+            "evidence_eligible": _evidence_eligible(item),
         }
         for item in context
     ]
@@ -267,11 +276,14 @@ def _review_prompt(candidate: Candidate, context: list[KnowledgeItem]) -> str:
             "Act as WanderMind's independent evidence reviewer and critic. Return only JSON.",
             language,
             "Judge the candidate as a testable structural-transfer hypothesis, not as a proven fact.",
-            "Use only the supplied source items and copy citation_ref values exactly into source_refs.",
+            "Each evidence item must be an object with claim and source_ref; copy citation_ref exactly.",
+            "Cite both evidence-eligible source items in supporting_evidence or reject the candidate.",
             "Treat autopilot-generated source content as an unverified hypothesis, never as evidence.",
+            "Never cite a source whose evidence_eligible value is false.",
             "Reject unsupported measurements, thresholds, percentages, units, or empirical outcomes.",
             "PASS when the connection is grounded, coherent, useful, testable, and explicitly caveated.",
             "Use REVISE for a promising but fixable claim and REJECT only for unsupported or contradictory claims.",
+            "For REVISE, provide a concise revised_statement; otherwise set revised_statement to null.",
             "The expanded idea must preserve uncertainty and state a concrete validation path.",
             f"Input: {json.dumps(payload, ensure_ascii=False)}",
         ]
@@ -281,19 +293,52 @@ def _review_prompt(candidate: Candidate, context: list[KnowledgeItem]) -> str:
 def _sanitize_review(
     output: CandidateReviewOutput,
     context: list[KnowledgeItem],
-) -> CandidateReviewOutput:
-    allowed_refs = {item.source_ref or f"knowledge:{item.id}" for item in context}
-    returned_refs = set(output.source_refs)
-    if returned_refs and not returned_refs.issubset(allowed_refs):
-        output.supporting_evidence = []
-        output.counter_evidence = []
-        output.source_refs = []
+) -> tuple[CandidateReviewOutput, list[str], list[str]]:
+    trusted_refs = {
+        item.source_ref or f"knowledge:{item.id}"
+        for item in context
+        if _evidence_eligible(item)
+    }
+    output.supporting_evidence = [
+        claim for claim in output.supporting_evidence if claim.source_ref in trusted_refs
+    ]
+    output.counter_evidence = [
+        claim for claim in output.counter_evidence if claim.source_ref in trusted_refs
+    ]
+    supporting_refs = list(
+        dict.fromkeys(claim.source_ref for claim in output.supporting_evidence)
+    )
+    counter_refs = list(dict.fromkeys(claim.source_ref for claim in output.counter_evidence))
+    if len(supporting_refs) < min(2, len(context)):
         output.uncertainty = max(output.uncertainty, 0.8)
-        if output.verdict == "pass":
-            output.verdict = "revise"
-        return output
-    output.source_refs = list(dict.fromkeys(output.source_refs))
-    return output
+        output.factual_risk = max(output.factual_risk, 0.65)
+        output.verdict = "reject"
+        output.weaknesses = list(
+            dict.fromkeys(
+                [
+                    *output.weaknesses,
+                    "The claim lacks grounded support from both independent source items.",
+                ]
+            )
+        )
+    if output.verdict == "revise" and not output.revised_statement:
+        output.verdict = "reject"
+        output.weaknesses = list(
+            dict.fromkeys(
+                [*output.weaknesses, "The requested revision did not provide a revised claim."]
+            )
+        )
+    return output, supporting_refs, counter_refs
+
+
+def _evidence_eligible(item: KnowledgeItem) -> bool:
+    epistemic_status = str(item.metadata.get("epistemic_status", "source_knowledge"))
+    return (
+        item.status is KnowledgeStatus.ACTIVE
+        and item.source != "autopilot"
+        and epistemic_status
+        not in {"reviewed_hypothesis", "quality_rejected", "encoding_corrupted"}
+    )
 
 
 def _string_usage(usage: dict[str, object], key: str) -> str | None:

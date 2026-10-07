@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -8,6 +9,7 @@ from wandermind.application.autopilot_service import AutopilotSupervisor
 from wandermind.application.candidate_runtime_service import (
     CandidateReviewOutput,
     CandidateSynthesisOutput,
+    ReviewEvidenceClaim,
     RuntimeCandidateReviewer,
     RuntimeCandidateSynthesizer,
 )
@@ -49,6 +51,7 @@ from wandermind.runtime import (
     CodexRuntimeAdapter,
     MockRuntimeAdapter,
     OpenAICompatibleRuntimeAdapter,
+    RuntimeTask,
 )
 
 
@@ -225,27 +228,7 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
                 implications=["Admission thresholds can be tuned from local feedback latency."],
                 questions=["Does earlier local backpressure reduce peak queue depth?"],
             ).model_dump(mode="json"),
-            "candidate_review": CandidateReviewOutput(
-                expanded_idea=(
-                    "Treat the connection as a falsifiable control hypothesis: earlier local "
-                    "saturation signals should reduce peak queue depth without centralized routing."
-                ),
-                supporting_evidence=[
-                    "Both knowledge items describe local feedback changing system-wide allocation."
-                ],
-                counter_evidence=[
-                    "Domain-specific delays may make the control loops behave differently."
-                ],
-                source_refs=[],
-                uncertainty=0.6,
-                weaknesses=["The transfer still requires an operational comparison."],
-                obviousness=0.2,
-                factual_risk=0.3,
-                alternative_explanations=[
-                    "The overlap may reflect generic resource-allocation language."
-                ],
-                verdict="revise",
-            ).model_dump(mode="json"),
+            "candidate_review": _mock_candidate_review_response,
             "explorer": ExplorerOutput(
                 expanded_idea="The connection can be explored as a testable structural analogy.",
                 implications=[
@@ -271,3 +254,49 @@ def _build_runtime(settings: Settings) -> AgentRuntimeAdapter:
             ).model_dump(mode="json"),
         }
     )
+
+
+def _mock_candidate_review_response(task: RuntimeTask) -> dict[str, object]:
+    input_line = next(
+        line.removeprefix("Input: ")
+        for line in task.prompt.splitlines()
+        if line.startswith("Input: ")
+    )
+    payload = json.loads(input_line)
+    source_refs = [
+        str(item["citation_ref"])
+        for item in payload["source_items"]
+        if item.get("evidence_eligible") is True
+    ]
+    return CandidateReviewOutput(
+        revised_statement=(
+            "Earlier local saturation signals may reduce peak queue depth without centralized "
+            "routing when both domains expose timely feedback."
+        ),
+        expanded_idea=(
+            "Treat the connection as a falsifiable control hypothesis: earlier local saturation "
+            "signals should reduce peak queue depth without centralized routing."
+        ),
+        supporting_evidence=[
+            ReviewEvidenceClaim(
+                claim="The source describes local feedback changing system-wide allocation.",
+                source_ref=source_ref,
+            )
+            for source_ref in source_refs
+        ],
+        counter_evidence=[
+            ReviewEvidenceClaim(
+                claim="Domain-specific delays may make the control loops behave differently.",
+                source_ref=source_ref,
+            )
+            for source_ref in source_refs
+        ],
+        uncertainty=0.6,
+        weaknesses=["The transfer still requires an operational comparison."],
+        obviousness=0.2,
+        factual_risk=0.3,
+        alternative_explanations=[
+            "The overlap may reflect generic resource-allocation language."
+        ],
+        verdict="revise",
+    ).model_dump(mode="json")

@@ -63,6 +63,10 @@ docker compose up --build
 
 Compose 会启动 pgvector/PostgreSQL、执行 Alembic 迁移、启动 API 与 Nginx 前端。
 
+Windows 长期无人值守部署使用 `scripts/start_local_stack.ps1` 与
+`scripts/install_local_service.ps1`：容器异常会自动重启，主机每 5 分钟探活修复，
+每 6 小时生成一次数据库备份。完整步骤见 `docs/local-deployment.md`。
+
 ## 线上部署
 
 [当前试用实例](https://wandermind-p6jg.onrender.com)（公开访问，无需登录）

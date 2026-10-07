@@ -17,6 +17,7 @@ frontend/playwright-report/
 frontend/test-results/
 frontend/coverage/
 backups/
+runtime/
 .idea/
 .vscode/
 *.log

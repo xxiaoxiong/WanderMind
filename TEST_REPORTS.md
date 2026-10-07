@@ -1,6 +1,29 @@
 # WanderMind V0.1 测试总览
 
-日期：2026-09-18
+日期：2026-10-07
+
+## Windows 本机长期运行验收
+
+| Gate | 结果 | 证据 |
+|---|---|---|
+| Backend format/lint/type | PASS | 本次改动文件 Ruff 与 Mypy strict 全部通过 |
+| Backend full suite | PASS | Pytest 91/91，coverage 80.92% |
+| Frontend | PASS | ESLint、Vitest 12/12、TypeScript、Vite production build |
+| Compose production stack | PASS | PostgreSQL/Backend/Frontend 三容器全部 healthy，仅绑定 `127.0.0.1` |
+| Schema drift recovery | PASS | 旧持久卷发现并修复 `runtime_sessions.last_used_at` 漂移；Alembic `20260930_0004`；`alembic check` 无差异 |
+| Long-seed regression | PASS | 近 2 万字符 Seed 可完整启动；Trace reason 截断到 2000 字符并保留 SHA-256 指纹，不再触发 `ValidationError` |
+| Evidence provenance | PASS | 自动假设、拒绝知识与污染快照不能作为证据；每个晋级结果至少引用 2 个独立原始来源 |
+| Runtime revision rescore | PASS | Reviewer 修订结论后重新评分，旧文本与旧分数保留审计但不能用于晋级 |
+| Real Agnes cycle | PASS | 真实轮次运行 148 秒、24 Trace steps、2 Candidates、4 Runtime calls；高风险结果被 reject/revise，未强行生成 Wonder |
+| Historical data quarantine | PASS | 10 条乱码 Render 快照与 11 条递归派生 Autopilot 知识无损隔离；Quality Gate v2 活跃自动知识归零 |
+| Cognitive benchmark | PASS | 12 cases 回归门通过；hit 100%、high-value 50%、obvious/random 0%、Runtime 36 次 |
+| Scale canary | PASS | 1000 items × 10 sessions，10/10 完成，p95 5.791 s，峰值 203.53 MB |
+| Crash recovery | PASS | Backend 进程强制终止后自动恢复；Campaign、当前 Session 与 120 条知识保持一致，恢复后 Runtime Session 4→5、Trace 21→24 |
+| Host watchdog | PASS | Docker Desktop 改用官方 CLI 启动，跨过原约 6 分钟退出窗口；Frontend 异常仍由主机 Guardian 修复 |
+| Backup archive | PASS | 数据修复前生成 38,081,509-byte custom dump，可完整恢复 Knowledge 与 Autopilot Campaign |
+| Windows persistence | PASS | 登录启动项、5 分钟 Guardian、6 小时备份任务已安装；交流睡眠与休眠超时均为 0 |
+
+Render 重复 Campaign 已暂停，避免与本机主实例竞争同一 Agnes 配额。本机 `.env` 保持 Git 忽略，Secret 扫描在临时移出本机配置后通过。
 
 ## Runtime 主流程整改
 

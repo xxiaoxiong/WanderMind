@@ -19,9 +19,12 @@ class CandidateSynthesisResult(DomainModel):
 
 
 class CandidateReviewResult(DomainModel):
+    revised_statement: str | None = None
     expanded_idea: str | None = None
     supporting_evidence: list[str] = Field(default_factory=list)
     counter_evidence: list[str] = Field(default_factory=list)
+    supporting_source_refs: list[str] = Field(default_factory=list)
+    counter_source_refs: list[str] = Field(default_factory=list)
     source_refs: list[str] = Field(default_factory=list)
     uncertainty: float = Field(default=1.0, ge=0.0, le=1.0)
     weaknesses: list[str] = Field(default_factory=list)

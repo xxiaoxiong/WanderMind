@@ -6,8 +6,10 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from itertools import combinations
+from uuid import UUID
 
 from wandermind.application.autopilot_quality import (
+    QUALITY_GATE_VERSION,
     AutopilotQualityPolicy,
     QualityGateResult,
 )
@@ -72,7 +74,7 @@ class AutopilotSeedPlanner:
         historical_seeds: list[Seed],
         historical_wonders: list[Wonder],
     ) -> Seed | None:
-        active_items = [item for item in items if item.status is KnowledgeStatus.ACTIVE]
+        active_items = [item for item in items if _is_original_evidence(item)]
         if len(active_items) < 2:
             return None
         pair_attempts = Counter(
@@ -116,13 +118,10 @@ class AutopilotSeedPlanner:
         self,
         pair: tuple[KnowledgeItem, KnowledgeItem],
         attempts: Counter[str],
-    ) -> tuple[int, int, float, str]:
-        generated_count = sum(item.source == "autopilot" for item in pair)
-        mixed_lineage_penalty = abs(generated_count - 1)
+    ) -> tuple[int, float, str]:
         age_gap = abs((pair[0].created_at - pair[1].created_at).total_seconds())
         return (
             attempts[self._pair_key(pair)],
-            mixed_lineage_penalty,
             -age_gap,
             self._pair_key(pair),
         )
@@ -415,12 +414,18 @@ class AutopilotSupervisor:
         wonders: list[Wonder],
     ) -> int:
         promoted = 0
+        knowledge = await self.repositories.knowledge.list(offset=0, limit=10_000)
+        knowledge_by_id = {item.id: item for item in knowledge}
         for wonder in wonders:
             if wonder.metadata.get("autopilot_promoted_knowledge_id"):
                 continue
-            quality = self.quality_policy.evaluate(
+            quality = _with_lineage_quality(
+                self.quality_policy.evaluate(
+                    wonder,
+                    configured_threshold=self.promotion_threshold,
+                ),
                 wonder,
-                configured_threshold=self.promotion_threshold,
+                knowledge_by_id,
             )
             wonder.metadata["autopilot_quality_gate"] = quality.as_metadata()
             if not quality.accepted:
@@ -453,6 +458,7 @@ class AutopilotSupervisor:
                         "epistemic_status": "reviewed_hypothesis",
                         "autopilot_quality_gate": quality.as_metadata(),
                         "runtime_review": wonder.metadata.get("runtime_review"),
+                        "source_lineage": [str(source_id) for source_id in wonder.source_items],
                     },
                 )
             except DuplicateKnowledgeError as error:
@@ -534,21 +540,26 @@ class AutopilotSupervisor:
             return
         wonders = await self.repositories.wonders.list(offset=0, limit=10_000)
         wonder_by_id = {str(wonder.id): wonder for wonder in wonders}
+        knowledge_by_id = {item.id: item for item in knowledge}
         accepted = 0
         rejected = 0
         for item in generated:
             source_wonder_id = item.metadata.get("source_wonder_id")
             wonder = wonder_by_id.get(str(source_wonder_id))
             quality = (
-                self.quality_policy.evaluate(
+                _with_lineage_quality(
+                    self.quality_policy.evaluate(
+                        wonder,
+                        configured_threshold=self.promotion_threshold,
+                    ),
                     wonder,
-                    configured_threshold=self.promotion_threshold,
+                    knowledge_by_id,
                 )
                 if wonder is not None
                 else QualityGateResult(False, ("source_wonder_missing",))
             )
             item.metadata["autopilot_quality_gate"] = quality.as_metadata()
-            if quality.accepted:
+            if quality.accepted and item.status is KnowledgeStatus.ACTIVE:
                 accepted += 1
                 item.metadata["epistemic_status"] = "reviewed_hypothesis"
             else:
@@ -566,7 +577,7 @@ class AutopilotSupervisor:
             await self.repositories.wonders.update(wonder)
         campaign = await self._latest_campaign()
         if campaign is not None:
-            campaign.metadata["quality_gate_version"] = 1
+            campaign.metadata["quality_gate_version"] = QUALITY_GATE_VERSION
             campaign.metadata["active_generated_knowledge"] = accepted
             campaign.metadata["rejected_generated_knowledge"] = rejected
             await self._save(campaign)
@@ -603,3 +614,32 @@ def _quality_gate_accepted(wonder: Wonder) -> bool:
 
 def _source_label(item: KnowledgeItem) -> str:
     return "待验证自动生成假设" if item.source == "autopilot" else "原始知识"
+
+
+def _is_original_evidence(item: KnowledgeItem) -> bool:
+    epistemic_status = str(item.metadata.get("epistemic_status", "source_knowledge"))
+    return (
+        item.status is KnowledgeStatus.ACTIVE
+        and item.source != "autopilot"
+        and epistemic_status
+        not in {"reviewed_hypothesis", "quality_rejected", "encoding_corrupted"}
+    )
+
+
+def _with_lineage_quality(
+    quality: QualityGateResult,
+    wonder: Wonder,
+    knowledge_by_id: dict[UUID, KnowledgeItem],
+) -> QualityGateResult:
+    reasons = list(quality.reasons)
+    source_ids = list(dict.fromkeys(wonder.source_items))
+    if len(source_ids) < 2:
+        reasons.append("insufficient_source_lineage")
+    for source_id in source_ids:
+        source = knowledge_by_id.get(source_id)
+        if source is None:
+            reasons.append("source_knowledge_missing")
+        elif not _is_original_evidence(source):
+            reasons.append("source_lineage_not_original")
+    unique_reasons = tuple(dict.fromkeys(reasons))
+    return QualityGateResult(accepted=not unique_reasons, reasons=unique_reasons)

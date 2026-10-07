@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from copy import deepcopy
 from enum import StrEnum
 from typing import Any
@@ -31,13 +31,16 @@ class MockRuntimeMode(StrEnum):
     MALFORMED = "malformed"
 
 
+MockResponse = dict[str, Any] | Callable[[RuntimeTask], dict[str, Any]]
+
+
 class MockRuntimeAdapter(AgentRuntimeAdapter):
     def __init__(
         self,
         *,
         mode: MockRuntimeMode = MockRuntimeMode.SUCCESS,
-        response: dict[str, Any] | None = None,
-        responses: dict[str, dict[str, Any]] | None = None,
+        response: MockResponse | None = None,
+        responses: dict[str, MockResponse] | None = None,
         fail_times: int = 0,
     ) -> None:
         self.mode = mode
@@ -73,7 +76,10 @@ class MockRuntimeAdapter(AgentRuntimeAdapter):
             raise RuntimeTimeoutError("mock runtime timeout")
         if self.mode is MockRuntimeMode.MALFORMED:
             raise RuntimeMalformedOutputError("mock malformed structured output")
-        response = self.responses.get(session.purpose, self.response)
+        configured_response = self.responses.get(session.purpose, self.response)
+        response = (
+            configured_response(task) if callable(configured_response) else configured_response
+        )
         try:
             validate(instance=response, schema=task.output_schema)
         except JsonSchemaValidationError as error:

@@ -5,6 +5,7 @@ import pytest
 from wandermind.application.candidate_runtime_service import (
     CandidateReviewOutput,
     CandidateSynthesisOutput,
+    ReviewEvidenceClaim,
     RuntimeCandidateReviewer,
     RuntimeCandidateSynthesizer,
 )
@@ -288,12 +289,26 @@ async def test_candidate_review_uses_one_grounded_runtime_call() -> None:
         content="Ant colonies coordinate through local feedback.",
     )
     review_output = CandidateReviewOutput(
+        revised_statement=None,
         expanded_idea=(
             "Compare whether earlier local signals reduce overload in both decentralized systems."
         ),
-        supporting_evidence=["Both sources describe local feedback."],
-        counter_evidence=["The mechanisms operate at different timescales."],
-        source_refs=["https://example.test/queues", f"knowledge:{right.id}"],
+        supporting_evidence=[
+            ReviewEvidenceClaim(
+                claim="Queues expose local feedback.",
+                source_ref="https://example.test/queues",
+            ),
+            ReviewEvidenceClaim(
+                claim="Ant colonies coordinate through local feedback.",
+                source_ref=f"knowledge:{right.id}",
+            ),
+        ],
+        counter_evidence=[
+            ReviewEvidenceClaim(
+                claim="The mechanisms operate at different timescales.",
+                source_ref=f"knowledge:{right.id}",
+            )
+        ],
         uncertainty=0.35,
         weaknesses=["The analogy still needs an operational metric."],
         obviousness=0.2,
@@ -312,7 +327,14 @@ async def test_candidate_review_uses_one_grounded_runtime_call() -> None:
     assert runtime.calls == 1
     assert result.runtime_calls == 1
     assert result.verdict == "pass"
-    assert result.source_refs == review_output.source_refs
+    assert result.supporting_source_refs == [
+        "https://example.test/queues",
+        f"knowledge:{right.id}",
+    ]
+    assert result.source_refs == [
+        "https://example.test/queues",
+        f"knowledge:{right.id}",
+    ]
     assert all(session.status.value == "closed" for session in runtime.sessions.values())
 
 
@@ -321,10 +343,15 @@ async def test_candidate_review_downgrades_invented_citations() -> None:
     context = [KnowledgeItem(title="Queues", content="Queues expose saturation signals.")]
     runtime = MockRuntimeAdapter(
         response=CandidateReviewOutput(
+            revised_statement=None,
             expanded_idea="A detailed but insufficiently grounded expansion for review.",
-            supporting_evidence=["Invented support."],
+            supporting_evidence=[
+                ReviewEvidenceClaim(
+                    claim="Invented support.",
+                    source_ref="https://invented.example/source",
+                )
+            ],
             counter_evidence=[],
-            source_refs=["https://invented.example/source"],
             uncertainty=0.2,
             weaknesses=[],
             obviousness=0.1,
@@ -340,7 +367,57 @@ async def test_candidate_review_downgrades_invented_citations() -> None:
         max_runtime_calls=1,
     )
 
-    assert result.verdict == "revise"
+    assert result.verdict == "reject"
     assert result.source_refs == []
     assert result.supporting_evidence == []
     assert result.uncertainty == 0.8
+
+
+@pytest.mark.asyncio
+async def test_candidate_review_rejects_generated_hypothesis_as_evidence() -> None:
+    original = KnowledgeItem(
+        title="Original",
+        content="Observed queue pressure triggers load shedding.",
+        source_ref="kb://original",
+    )
+    generated = KnowledgeItem(
+        title="Generated",
+        content="An autonomous hypothesis about analogous feedback.",
+        source="autopilot",
+        source_ref="wonder://generated",
+        metadata={"epistemic_status": "reviewed_hypothesis"},
+    )
+    runtime = MockRuntimeAdapter(
+        response=CandidateReviewOutput(
+            revised_statement=None,
+            expanded_idea="A detailed claim that incorrectly treats generated text as evidence.",
+            supporting_evidence=[
+                ReviewEvidenceClaim(
+                    claim="Queue pressure is observed in the original source.",
+                    source_ref="kb://original",
+                ),
+                ReviewEvidenceClaim(
+                    claim="The generated hypothesis claims an analogous mechanism.",
+                    source_ref="wonder://generated",
+                ),
+            ],
+            counter_evidence=[],
+            uncertainty=0.2,
+            weaknesses=[],
+            obviousness=0.1,
+            factual_risk=0.2,
+            alternative_explanations=[],
+            verdict="pass",
+        ).model_dump(mode="json")
+    )
+
+    result = await RuntimeCandidateReviewer(runtime).review(
+        candidate(),
+        [original, generated],
+        max_runtime_calls=1,
+    )
+
+    assert result.verdict == "reject"
+    assert result.supporting_source_refs == ["kb://original"]
+    assert result.uncertainty >= 0.8
+    assert result.factual_risk >= 0.65

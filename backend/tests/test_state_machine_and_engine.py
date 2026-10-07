@@ -1,13 +1,67 @@
+from typing import Any
+
 import pytest
 
 from wandermind.cognitive.embedding import HashEmbeddingAdapter
 from wandermind.cognitive.engine import WanderEngine
 from wandermind.cognitive.ingestion import IngestionService
 from wandermind.cognitive.operators import OperatorSelector, default_operators
-from wandermind.cognitive.scoring import ThresholdPolicy, WonderScorer
+from wandermind.cognitive.runtime_services import CandidateReviewResult
+from wandermind.cognitive.scoring import ThresholdDecision, ThresholdPolicy, WonderScorer
 from wandermind.cognitive.state_machine import CognitiveStateMachine, InvalidStateTransition
-from wandermind.models import CognitiveState, Seed, SessionStatus, WanderBudget
+from wandermind.models import (
+    Candidate,
+    CognitiveState,
+    KnowledgeItem,
+    Seed,
+    SessionStatus,
+    WanderBudget,
+)
 from wandermind.repositories import InMemoryRepositoryBundle
+
+
+class RevisionRejectingScorer(WonderScorer):
+    def __init__(self, embedding: HashEmbeddingAdapter) -> None:
+        super().__init__(embedding)
+        self.scored_statements: list[str] = []
+
+    async def score(self, *args: Any, **kwargs: Any) -> tuple[Any, Any, ThresholdDecision]:
+        scores, explanation, _ = await super().score(*args, **kwargs)
+        self.scored_statements.append(args[0].statement)
+        decision = (
+            ThresholdDecision.SURFACE
+            if len(self.scored_statements) == 1
+            else ThresholdDecision.REJECT
+        )
+        return scores, explanation, decision
+
+
+class GroundedRevisingReviewer:
+    async def review(
+        self,
+        candidate: Candidate,
+        context: list[KnowledgeItem],
+        *,
+        max_runtime_calls: int,
+    ) -> CandidateReviewResult:
+        return CandidateReviewResult(
+            revised_statement="Revised local feedback claim that must be scored independently.",
+            expanded_idea=(
+                "The revision narrows the claim to a falsifiable comparison of local feedback "
+                "latency and peak load across the two supplied source domains."
+            ),
+            supporting_evidence=["Source A support", "Source B support"],
+            counter_evidence=["Different delays may invalidate the transfer."],
+            supporting_source_refs=[
+                item.source_ref or f"knowledge:{item.id}" for item in context
+            ],
+            counter_source_refs=[context[0].source_ref or f"knowledge:{context[0].id}"],
+            source_refs=[item.source_ref or f"knowledge:{item.id}" for item in context],
+            uncertainty=0.3,
+            factual_risk=0.2,
+            verdict="revise",
+            runtime_calls=1,
+        )
 
 
 def test_state_machine_accepts_flow_and_rejects_invalid_transition() -> None:
@@ -77,6 +131,28 @@ async def test_wander_stops_cleanly_with_insufficient_knowledge() -> None:
     assert result.session.status is SessionStatus.STOPPED
     assert result.session.trace.stop_reason == "insufficient_knowledge"
     assert not result.wonders
+
+
+@pytest.mark.asyncio
+async def test_wander_bounds_long_seed_in_trace_without_failing() -> None:
+    repositories = InMemoryRepositoryBundle()
+    embedding = HashEmbeddingAdapter(32)
+    seed = Seed(content=("Long seed evidence and constraints. " * 500).strip())
+    await repositories.seeds.create(seed)
+    engine = WanderEngine(
+        repositories,
+        embedding,
+        OperatorSelector(default_operators()),
+        WonderScorer(embedding),
+    )
+
+    result = await engine.run(seed)
+
+    assert result.session.status is SessionStatus.STOPPED
+    assert result.session.trace.stop_reason == "insufficient_knowledge"
+    first_reason = result.session.trace.steps[0].reason
+    assert len(first_reason) <= 2_000
+    assert "[truncated sha256:" in first_reason
 
 
 @pytest.mark.asyncio
@@ -166,3 +242,44 @@ async def test_deep_wander_compares_multiple_candidates_before_completing() -> N
     assert result.session.trace.stop_reason == "target_wonders_reached"
     assert result.session.trace.final_wonder_ids == [wonder.id for wonder in result.wonders]
     assert any(step.action == "continue_after_surface" for step in result.session.trace.steps)
+
+
+@pytest.mark.asyncio
+async def test_runtime_revision_is_rescored_before_promotion() -> None:
+    repositories = InMemoryRepositoryBundle()
+    embedding = HashEmbeddingAdapter(48)
+    ingestion = IngestionService(repositories.knowledge, embedding)
+    for title, content, source_ref in [
+        (
+            "Queue control",
+            "Backpressure uses local saturation signals to limit queue growth.",
+            "kb://queues",
+        ),
+        (
+            "Ecological control",
+            "Local feedback can constrain resource demand in ecological systems.",
+            "kb://ecology",
+        ),
+    ]:
+        await ingestion.ingest_text(content, title=title, source_ref=source_ref)
+    seed = Seed(content="Compare local feedback mechanisms without assuming equivalence.")
+    await repositories.seeds.create(seed)
+    scorer = RevisionRejectingScorer(embedding)
+    engine = WanderEngine(
+        repositories,
+        embedding,
+        OperatorSelector(default_operators()),
+        scorer,
+        candidate_reviewer=GroundedRevisingReviewer(),
+    )
+
+    result = await engine.run(
+        seed,
+        WanderBudget(max_steps=3, max_candidates=1, max_runtime_calls=1),
+    )
+
+    assert len(scorer.scored_statements) == 2
+    assert scorer.scored_statements[1].startswith("Revised local feedback claim")
+    assert result.wonders == []
+    assert result.candidates[0].status.value == "rejected"
+    assert result.candidates[0].metadata["runtime_revision"]["original_scores"]

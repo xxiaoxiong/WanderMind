@@ -59,12 +59,24 @@ def _mock_runtime_quality_policy() -> AutopilotQualityPolicy:
 
 async def _add_knowledge(container: ApplicationContainer) -> None:
     ingestion = container.ingestion
-    for title, content in [
-        ("Ecology", "Distributed ecological feedback protects scarce resources."),
-        ("Queues", "Backpressure prevents distributed workers from overload."),
-        ("Cities", "Neighborhood sensors distribute early warning capacity."),
+    for title, content, source_ref in [
+        (
+            "Ecology",
+            "Distributed ecological feedback protects scarce resources.",
+            "mock://source/ecology",
+        ),
+        (
+            "Queues",
+            "Backpressure prevents distributed workers from overload.",
+            "mock://source/queues",
+        ),
+        (
+            "Cities",
+            "Neighborhood sensors distribute early warning capacity.",
+            "mock://source/cities",
+        ),
     ]:
-        await ingestion.ingest_text(content, title=title)
+        await ingestion.ingest_text(content, title=title, source_ref=source_ref)
 
 
 def _reviewed_wonder(*, factual_risk: float = 0.2) -> Wonder:
@@ -100,6 +112,7 @@ def _reviewed_wonder(*, factual_risk: float = 0.2) -> Wonder:
                 "verdict": "pass",
                 "uncertainty": 0.4,
                 "factual_risk": factual_risk,
+                "supporting_source_refs": ["kb://source-a", "kb://source-b"],
             },
         },
     )
@@ -110,11 +123,16 @@ def test_autopilot_quality_gate_requires_low_risk_independent_review() -> None:
 
     accepted = policy.evaluate(_reviewed_wonder())
     rejected = policy.evaluate(_reviewed_wonder(factual_risk=0.8))
+    ungrounded = _reviewed_wonder()
+    ungrounded.metadata["runtime_review"]["supporting_source_refs"] = []
+    ungrounded_result = policy.evaluate(ungrounded)
 
     assert accepted.accepted is True
     assert accepted.reasons == ()
     assert rejected.accepted is False
     assert "factual_risk_too_high" in rejected.reasons
+    assert ungrounded_result.accepted is False
+    assert "insufficient_grounded_sources" in ungrounded_result.reasons
 
 
 @pytest.mark.asyncio
@@ -197,7 +215,7 @@ async def test_autopilot_runs_cycles_and_feeds_wonders_back_into_knowledge() -> 
     paired_ids = second_cycle.current_seed.metadata["paired_item_ids"]
     knowledge = await container.repositories.knowledge.list(offset=0, limit=100)
     generated_ids = {str(item.id) for item in knowledge if item.source == "autopilot"}
-    assert generated_ids.intersection(paired_ids)
+    assert not generated_ids.intersection(paired_ids)
 
     paused = await container.autopilot.pause()
     assert paused.campaign is not None

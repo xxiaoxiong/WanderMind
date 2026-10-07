@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from hashlib import sha256
 from time import perf_counter
 from typing import Any
 from uuid import UUID
@@ -9,7 +10,7 @@ from uuid import UUID
 from wandermind.cognitive.association import AssociationEngine
 from wandermind.cognitive.embedding import EmbeddingAdapter
 from wandermind.cognitive.errors import EmbeddingError, EvaluationError, OperatorExecutionError
-from wandermind.cognitive.operators import OperatorContext, OperatorSelector
+from wandermind.cognitive.operators import OperatorContext, OperatorResult, OperatorSelector
 from wandermind.cognitive.patches import PatchBuilder, marginal_novelty_gain
 from wandermind.cognitive.retrieval import RetrievedItem, SemanticRetriever
 from wandermind.cognitive.runtime_services import (
@@ -30,6 +31,7 @@ from wandermind.models import (
     CognitiveState,
     KnowledgeItem,
     KnowledgePatch,
+    KnowledgeStatus,
     Seed,
     SeedStatus,
     SessionStatus,
@@ -133,7 +135,11 @@ class WanderEngine:
             )
             seed.status = SeedStatus.ACTIVE
             await self.repositories.seeds.update(seed)
-            items = await self.repositories.knowledge.list(offset=0, limit=10_000)
+            items = [
+                item
+                for item in await self.repositories.knowledge.list(offset=0, limit=10_000)
+                if item.status is KnowledgeStatus.ACTIVE
+            ]
             if len(items) < 2:
                 return await self._stop(
                     session, machine, candidates, wonders, "insufficient_knowledge"
@@ -463,17 +469,75 @@ class WanderEngine:
                         "runtime budget could not fund an independent candidate review",
                         candidate_ids=[candidate.id],
                     )
-                review_repaired = bool(
+                revision_ready = bool(
                     review is not None
                     and review.verdict == "revise"
-                    and review.factual_risk <= 0.4
-                    and review.uncertainty <= 0.65
+                    and review.factual_risk <= 0.35
+                    and review.uncertainty <= 0.60
+                    and len(set(review.supporting_source_refs)) >= 2
+                    and review.revised_statement
                     and review.expanded_idea
+                )
+                if revision_ready and review is not None:
+                    original_statement = candidate.statement
+                    original_explanation = candidate.explanation
+                    original_scores = candidate.scores.model_dump(mode="json")
+                    revised_result = OperatorResult(
+                        wonder_type=operator_result.wonder_type,
+                        statement=review.revised_statement or candidate.statement,
+                        explanation=review.expanded_idea or candidate.explanation,
+                        structured=dict(operator_result.structured),
+                        questions=list(operator_result.questions),
+                    )
+                    candidate.statement = revised_result.statement
+                    candidate.explanation = revised_result.explanation
+                    try:
+                        scores, score_explanation, decision = await self.scorer.score(
+                            candidate,
+                            revised_result,
+                            seed,
+                            [left, right],
+                            association,
+                            historical_wonders,
+                            knowledge_items=items,
+                            feedback_history=feedback_history,
+                        )
+                    except Exception as error:
+                        raise EvaluationError("revised candidate scoring failed") from error
+                    operator_result = revised_result
+                    candidate.scores = scores
+                    candidate.metadata["score_explanation"] = score_explanation.model_dump(
+                        mode="json"
+                    )
+                    candidate.metadata["threshold_decision"] = decision.value
+                    candidate.metadata["runtime_revision"] = {
+                        "original_statement": original_statement,
+                        "original_explanation": original_explanation,
+                        "original_scores": original_scores,
+                        "revised_scores": scores.model_dump(mode="json"),
+                    }
+                    if decision is ThresholdDecision.REJECT:
+                        candidate.status = CandidateStatus.REJECTED
+                    elif decision is ThresholdDecision.KEEP_CANDIDATE:
+                        candidate.status = CandidateStatus.FILTERED
+                    else:
+                        candidate.status = CandidateStatus.PROMISING
+                    await self.repositories.candidates.update(candidate)
+                review_repaired = bool(
+                    revision_ready
+                    and decision
+                    in {ThresholdDecision.DEEP_EXPLORE, ThresholdDecision.SURFACE}
                 )
                 review_passed = self.candidate_reviewer is None or (
                     review is not None
                     and (
-                        (review.verdict == "pass" and review.factual_risk < 0.75) or review_repaired
+                        (
+                            review.verdict == "pass"
+                            and review.factual_risk <= 0.40
+                            and review.uncertainty <= 0.60
+                            and len(set(review.supporting_source_refs)) >= 2
+                        )
+                        or review_repaired
                     )
                 )
                 runtime_overrides_weak_association = (
@@ -511,11 +575,7 @@ class WanderEngine:
                         seed_id=seed.id,
                         candidate_id=candidate.id,
                         type=candidate.candidate_type,
-                        statement=(
-                            review.expanded_idea
-                            if review_repaired and review is not None and review.expanded_idea
-                            else candidate.statement
-                        ),
+                        statement=candidate.statement,
                         explanation=(
                             review.expanded_idea
                             if review is not None and review.expanded_idea
@@ -557,7 +617,11 @@ class WanderEngine:
                                 else "score_threshold"
                             ),
                             "original_statement": (
-                                candidate.statement if review_repaired else None
+                                candidate.metadata.get("runtime_revision", {}).get(
+                                    "original_statement"
+                                )
+                                if review_repaired
+                                else None
                             ),
                         },
                     )
@@ -779,7 +843,7 @@ class WanderEngine:
                 index=len(session.trace.steps),
                 state=state,
                 action=action,
-                reason=reason,
+                reason=_bounded_trace_reason(reason),
                 **step_fields,
             )
         )
@@ -841,3 +905,12 @@ class WanderEngine:
             seen.add(key)
             pairs.append((left, right))
         return pairs
+
+
+def _bounded_trace_reason(reason: str, *, max_length: int = 2_000) -> str:
+    normalized = " ".join(reason.split())
+    if len(normalized) <= max_length:
+        return normalized
+    digest = sha256(normalized.encode("utf-8")).hexdigest()[:16]
+    suffix = f" ... [truncated sha256:{digest}]"
+    return f"{normalized[: max_length - len(suffix)].rstrip()}{suffix}"

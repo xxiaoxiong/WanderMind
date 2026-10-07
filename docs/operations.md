@@ -11,6 +11,17 @@ docker compose down
 
 `docker compose down` 不删除数据库卷；只有显式 `down -v` 才会删除数据。
 
+Windows 无人值守运行请使用：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/start_local_stack.ps1 -Build
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/install_local_service.ps1
+```
+
+安装脚本会写入当前用户启动目录，创建每 5 分钟一次的 `WanderMind Stack Guardian`
+任务和每 6 小时一次的 `WanderMind Database Backup` 任务，并将交流供电下的睡眠与
+休眠设为“从不”。详细安装、验证、停用与恢复方法见 `docs/local-deployment.md`。
+
 ## 健康与指标
 
 - Liveness：`GET /health`，期望 `status=ok`、`autopilot_worker_running=true`、`guardian.running=true`；启用托管保活时还应满足 `guardian.keepalive_enabled=true`，并观察 `last_keepalive_success_at` 持续更新。
@@ -39,6 +50,7 @@ Invoke-RestMethod https://wandermind-p6jg.onrender.com/api/v1/autopilot/status
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/backup.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/backup_and_prune.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore.ps1 `
   -InputPath ./backups/wandermind_YYYYMMDD_HHMMSS.dump -Force
 ```
