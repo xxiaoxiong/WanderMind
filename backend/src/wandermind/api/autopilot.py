@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from wandermind.api.dependencies import get_container
-from wandermind.api.schemas import AutopilotStart
+from wandermind.api.schemas import AutopilotObjectiveUpdate, AutopilotStart
 from wandermind.application.autopilot_service import AutopilotSnapshot
 from wandermind.application.container import ApplicationContainer
 
@@ -27,6 +27,14 @@ async def start_autopilot(
         objective=payload.objective,
         budget=payload.budget,
     )
+
+
+@router.put("/objective", response_model=AutopilotSnapshot)
+async def update_autopilot_objective(
+    payload: AutopilotObjectiveUpdate,
+    container: Container,
+) -> AutopilotSnapshot:
+    return await container.autopilot.update_objective(payload.objective)
 
 
 @router.post("/resume", response_model=AutopilotSnapshot)

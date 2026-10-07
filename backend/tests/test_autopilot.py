@@ -304,4 +304,16 @@ async def test_autopilot_api_exposes_persistent_control_and_progress() -> None:
         assert paused.status_code == 200
         assert paused.json()["campaign"]["status"] == "paused"
         assert paused.json()["current_session"] is None
+
+        updated = await client.put(
+            "/api/v1/autopilot/objective",
+            json={"objective": "Design high-quality agent architectures."},
+        )
+        assert updated.status_code == 200
+        assert updated.json()["campaign"]["status"] == "paused"
+        assert updated.json()["campaign"]["objective"] == (
+            "Design high-quality agent architectures."
+        )
+        assert updated.json()["campaign"]["cycles_started"] == 1
+        assert updated.json()["current_session"] is None
     await container.wander_coordinator.shutdown()

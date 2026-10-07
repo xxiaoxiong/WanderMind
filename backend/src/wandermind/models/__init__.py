@@ -1,4 +1,8 @@
-from wandermind.models.autopilot import AutopilotCampaign, default_autopilot_budget
+from wandermind.models.autopilot import (
+    DEFAULT_AUTOPILOT_OBJECTIVE,
+    AutopilotCampaign,
+    default_autopilot_budget,
+)
 from wandermind.models.cognitive import KnowledgePatch, PatchMembership
 from wandermind.models.enums import (
     AutopilotStatus,
@@ -20,6 +24,7 @@ from wandermind.models.session import WanderBudget, WanderSession, WanderStep, W
 from wandermind.models.thought import Candidate, Feedback, Seed, Wonder, WonderScores
 
 __all__ = [
+    "DEFAULT_AUTOPILOT_OBJECTIVE",
     "AutopilotCampaign",
     "AutopilotStatus",
     "Candidate",

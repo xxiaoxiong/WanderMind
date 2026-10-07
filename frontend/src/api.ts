@@ -64,6 +64,12 @@ export const api = {
       body: JSON.stringify({ objective: objective || null }),
     });
   },
+  updateAutopilotObjective(objective: string): Promise<AutopilotSnapshot> {
+    return request("/autopilot/objective", {
+      method: "PUT",
+      body: JSON.stringify({ objective }),
+    });
+  },
   resumeAutopilot(): Promise<AutopilotSnapshot> {
     return request("/autopilot/resume", { method: "POST" });
   },

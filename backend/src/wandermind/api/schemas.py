@@ -91,6 +91,10 @@ class AutopilotStart(BaseModel):
     budget: WanderBudget | None = None
 
 
+class AutopilotObjectiveUpdate(BaseModel):
+    objective: str = Field(min_length=1, max_length=20_000)
+
+
 class FeedbackCreate(BaseModel):
     action: FeedbackAction
     value: float | None = Field(default=None, ge=-1.0, le=1.0)

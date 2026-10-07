@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, ApiError } from "../api";
 import { Eyebrow, LoadingOrbit, Notice, StatusPill } from "../components/Primitives";
@@ -8,13 +8,15 @@ import { usePreferences } from "../preferences";
 import type { AutopilotSnapshot } from "../types";
 
 const DEFAULT_OBJECTIVE =
-  "持续检查知识场中的隐含假设、矛盾、跨领域机制和二阶后果，产出可验证且不重复的高质量新洞见。";
+  "聚焦高质量智能体架构设计，持续研究认知与决策分层、规划执行闭环、记忆与知识治理、工具调用、多智能体协作、上下文工程、可观测性、评估、安全和成本效能；产出可验证、可实施、有反证路径且不重复既有成果的架构原则、设计模式、失败模式与演进方案。";
 
 export function AutopilotPage() {
   const { formatDate, language } = usePreferences();
   const copy = language === "zh-CN" ? chinese : english;
   const [snapshot, setSnapshot] = useState<AutopilotSnapshot | null>(null);
   const [objective, setObjective] = useState(DEFAULT_OBJECTIVE);
+  const [objectiveDirty, setObjectiveDirty] = useState(false);
+  const objectiveDirtyRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +24,9 @@ export function AutopilotPage() {
     try {
       const value = await api.getAutopilotStatus();
       setSnapshot(value);
-      if (value.campaign?.objective) setObjective(value.campaign.objective);
+      if (value.campaign?.objective && !objectiveDirtyRef.current) {
+        setObjective(value.campaign.objective);
+      }
       setError(null);
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : copy.loadError);
@@ -39,16 +43,38 @@ export function AutopilotPage() {
     setBusy(true);
     setError(null);
     try {
-      const next = action === "start"
+      const submitsObjective = action === "start" || action === "resume";
+      const next = submitsObjective
         ? await api.startAutopilot(objective.trim() || DEFAULT_OBJECTIVE)
-        : action === "resume"
-          ? await api.resumeAutopilot()
-          : action === "pause"
-            ? await api.pauseAutopilot()
-            : await api.stopAutopilot();
+        : action === "pause"
+          ? await api.pauseAutopilot()
+          : await api.stopAutopilot();
       setSnapshot(next);
+      if (submitsObjective && next.campaign?.objective) {
+        objectiveDirtyRef.current = false;
+        setObjectiveDirty(false);
+        setObjective(next.campaign.objective);
+      }
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : copy.controlError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveObjective = async () => {
+    const nextObjective = objective.trim();
+    if (!nextObjective) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await api.updateAutopilotObjective(nextObjective);
+      setSnapshot(next);
+      objectiveDirtyRef.current = false;
+      setObjectiveDirty(false);
+      setObjective(next.campaign?.objective ?? nextObjective);
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : copy.saveError);
     } finally {
       setBusy(false);
     }
@@ -83,9 +109,22 @@ export function AutopilotPage() {
               id="autopilot-objective"
               disabled={running}
               value={objective}
-              onChange={(event) => setObjective(event.target.value)}
+              onChange={(event) => {
+                objectiveDirtyRef.current = true;
+                setObjectiveDirty(true);
+                setObjective(event.target.value);
+              }}
             />
             <div className="autopilot-actions">
+              {campaign && !running ? (
+                <button
+                  className="button"
+                  disabled={busy || !objectiveDirty || !objective.trim()}
+                  onClick={() => void saveObjective()}
+                >
+                  {copy.saveObjective}
+                </button>
+              ) : null}
               {!campaign || campaign.status === "stopped" ? (
                 <button className="button button-primary" disabled={busy} onClick={() => void control("start")}>{copy.start}</button>
               ) : null}
@@ -176,7 +215,9 @@ const english = {
   loading: "Reading the persistent exploration state",
   loadError: "Could not load Autopilot status.",
   controlError: "Could not change Autopilot state.",
+  saveError: "Could not save the exploration objective.",
   objective: "Persistent exploration objective",
+  saveObjective: "Save objective",
   start: "Start continuous exploration",
   resume: "Resume",
   pause: "Pause after checkpoint",
@@ -213,7 +254,9 @@ const chinese = {
   loading: "正在读取持久化探索状态",
   loadError: "无法加载持续探索状态。",
   controlError: "无法切换持续探索状态。",
+  saveError: "无法保存长期探索目标。",
   objective: "长期探索目标",
+  saveObjective: "保存目标",
   start: "启动持续探索",
   resume: "继续运行",
   pause: "在检查点暂停",

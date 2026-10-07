@@ -9,6 +9,12 @@ from wandermind.models.base import Metadata, TimestampedModel, utc_now
 from wandermind.models.enums import AutopilotStatus
 from wandermind.models.session import WanderBudget
 
+DEFAULT_AUTOPILOT_OBJECTIVE = (
+    "聚焦高质量智能体架构设计: 持续研究认知与决策分层、规划执行闭环、记忆与知识治理、"
+    "工具调用、多智能体协作、上下文工程、可观测性、评估、安全和成本效能; 产出可验证、"
+    "可实施、有反证路径且不重复既有成果的架构原则、设计模式、失败模式与演进方案。"
+)
+
 
 def default_autopilot_budget() -> WanderBudget:
     return WanderBudget(

@@ -17,6 +17,7 @@ from wandermind.application.runtime_summary import RuntimeSummary, summarize_run
 from wandermind.application.wander_coordinator import WanderCoordinator
 from wandermind.cognitive.ingestion import DuplicateKnowledgeError, IngestionService
 from wandermind.models import (
+    DEFAULT_AUTOPILOT_OBJECTIVE,
     AutopilotCampaign,
     AutopilotStatus,
     KnowledgeEdge,
@@ -36,11 +37,6 @@ from wandermind.models.base import DomainModel, utc_now
 from wandermind.repositories.protocols import RepositoryBundle
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_AUTOPILOT_OBJECTIVE = (
-    "持续检查知识场中的隐含假设、矛盾、跨领域机制和二阶后果;产出可验证、"
-    "有反证路径且不重复既有成果的高质量新洞见。"
-)
 
 EXPLORATION_MODES = (
     "mechanism_transfer",
@@ -247,6 +243,22 @@ class AutopilotSupervisor:
                 campaign.last_error = None
                 await self._save(campaign)
             await self._tick_locked()
+        return await self.snapshot()
+
+    async def update_objective(self, objective: str) -> AutopilotSnapshot:
+        async with self._lock:
+            campaign = await self._latest_campaign()
+            if campaign is None:
+                campaign = AutopilotCampaign(
+                    objective=objective,
+                    status=AutopilotStatus.PAUSED,
+                    budget=self.budget or WanderBudget(),
+                    next_cycle_at=None,
+                )
+                await self.repositories.autopilot_campaigns.create(campaign)
+            else:
+                campaign.objective = objective
+                await self._save(campaign)
         return await self.snapshot()
 
     async def pause(self) -> AutopilotSnapshot:

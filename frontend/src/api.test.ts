@@ -83,6 +83,7 @@ describe("api client", () => {
 
     await api.getAutopilotStatus();
     await api.startAutopilot("Keep discovering testable mechanisms");
+    await api.updateAutopilotObjective("Design high-quality agent architectures");
     await api.pauseAutopilot();
 
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -100,6 +101,14 @@ describe("api client", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
+      "/api/v1/autopilot/objective",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ objective: "Design high-quality agent architectures" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
       "/api/v1/autopilot/pause",
       expect.objectContaining({ method: "POST" }),
     );

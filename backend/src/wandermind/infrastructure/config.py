@@ -6,6 +6,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from wandermind.models import DEFAULT_AUTOPILOT_OBJECTIVE
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -62,10 +64,7 @@ class Settings(BaseSettings):
     keepalive_interval_seconds: float = Field(default=300.0, ge=60.0, le=840.0)
     keepalive_timeout_seconds: float = Field(default=30.0, gt=0.0, le=120.0)
     autopilot_objective: str = Field(
-        default=(
-            "持续检查知识场中的隐含假设、矛盾、跨领域机制和二阶后果;产出可验证、"
-            "有反证路径且不重复既有成果的高质量新洞见。"
-        ),
+        default=DEFAULT_AUTOPILOT_OBJECTIVE,
         min_length=1,
         max_length=20_000,
     )
